@@ -1,0 +1,17 @@
+-- name: GetFilmByTitle :one
+SELECT *
+FROM films
+WHERE title = $1;
+
+-- name: GetAllFilms :many
+SELECT 
+    f.id, f.title, f.description, f.release_date, f.duration,
+    ARRAY_AGG(DISTINCT fg.genre::text) AS genres,
+    ofi.status, ofi.poster_url, ofi.trailer_url
+FROM films AS f
+LEFT JOIN other_film_informations AS ofi ON f.id = ofi.film_id
+LEFT JOIN film_genres AS fg ON fg.film_id = f.id
+GROUP BY 
+    f.id, f.title, f.description, f.release_date, f.duration,
+    ofi.status, ofi.poster_url, ofi.trailer_url
+ORDER BY f.release_date DESC;
