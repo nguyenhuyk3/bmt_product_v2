@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"path/filepath"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -25,6 +27,38 @@ const (
 	film_image_base_key = "film-images/"
 	film_video_base_key = "film-videos/"
 )
+
+func extractObjectKeyFromURL(objectURL string) (string, error) {
+	parsedURL, err := url.Parse(objectURL)
+	if err != nil {
+		return "", fmt.Errorf("invalid URL: %w", err)
+	}
+
+	objectKey := strings.TrimPrefix(parsedURL.Path, "/")
+
+	return objectKey, nil
+
+}
+
+// DeleteObject implements services.IUpload.
+func (us *UploadService) DeleteObject(objectURL string) error {
+	objectKey, err := extractObjectKeyFromURL(objectURL)
+	if err != nil {
+		return fmt.Errorf("an error occur when parsing object URL (%s): %v", objectURL, err)
+	}
+
+	input := &s3.DeleteObjectInput{
+		Bucket: aws.String(global.Config.ServiceSetting.S3Setting.FilmBucketName),
+		Key:    aws.String(objectKey),
+	}
+
+	_, err = us.S3Client.DeleteObject(input)
+	if err != nil {
+		return fmt.Errorf("failed to delete object '%s' from S3: %v", objectKey, err)
+	}
+
+	return nil
+}
 
 // UploadFilmImageToS3 implements services.IS3.
 func (us *UploadService) UploadFilmImageToS3(message request.UploadImageReq) error {

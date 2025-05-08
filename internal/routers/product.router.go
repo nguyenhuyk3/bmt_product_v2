@@ -18,11 +18,12 @@ func (pr *ProductRouter) InitProductRouter(router *gin.RouterGroup) {
 	}
 	getFromHeaderMiddleware := middlewares.NewGetFromHeaderMiddleware()
 
-	productRouterPublic := router.Group("/film")
+	filmRouterPublic := router.Group("/film")
 	{
-		filmRouterPrivate := productRouterPublic.Group("/admin")
+		filmRouterPrivate := filmRouterPublic.Group("/admin")
 		{
 			filmRouterPrivate.POST("/add", getFromHeaderMiddleware.GetEmailFromHeader(), productController.AddFilm)
+			filmRouterPrivate.PUT("/update", getFromHeaderMiddleware.GetEmailFromHeader(), productController.UpdateFilm)
 			filmRouterPrivate.GET("/get_all_films", productController.GetAllFilms)
 		}
 	}

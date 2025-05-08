@@ -58,8 +58,8 @@ func (pc *ProductController) AddFilm(c *gin.Context) {
 		},
 		ChangedBy: c.GetString(global.X_USER_EMAIL),
 		OtherFilmInformation: request.OtherFilmInformation{
-			PosterUrl:  poster,
-			TrailerUrl: trailer,
+			PosterFile:  poster,
+			TrailerFile: trailer,
 		},
 	}
 
@@ -86,4 +86,53 @@ func (pc *ProductController) GetAllFilms(c *gin.Context) {
 	}
 
 	responses.SuccessResponse(c, status, "get all films perform successfully", films)
+}
+
+func (pc *ProductController) UpdateFilm(c *gin.Context) {
+	filmId := c.PostForm("film_id")
+	title := c.PostForm("title")
+	description := c.PostForm("description")
+	releaseDate := c.PostForm("release_date")
+	duration := c.PostForm("duration")
+	genresJson := c.PostForm("genres")
+
+	var genres []string
+	if err := json.Unmarshal([]byte(genresJson), &genres); err != nil {
+		responses.FailureResponse(c, http.StatusBadRequest, "genres invalid format")
+		return
+	}
+
+	req := request.UpdateFilmReq{
+		FilmId: filmId,
+		FilmInformation: request.FilmInformation{
+			Title:       title,
+			Description: description,
+			ReleaseDate: releaseDate,
+			Genres:      genres,
+			Duration:    duration,
+		},
+		ChangedBy:            c.GetString(global.X_USER_EMAIL),
+		OtherFilmInformation: request.OtherFilmInformation{},
+	}
+
+	poster, err := c.FormFile("poster")
+	if err == nil {
+		req.OtherFilmInformation.PosterFile = poster
+	}
+
+	trailer, err := c.FormFile("trailer")
+	if err == nil {
+		req.OtherFilmInformation.TrailerFile = trailer
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+
+	status, err := pc.ProductService.UpdateFilm(ctx, req)
+	if err != nil {
+		responses.FailureResponse(c, status, err.Error())
+		return
+	}
+
+	responses.SuccessResponse(c, status, "update film perform successfully", nil)
 }

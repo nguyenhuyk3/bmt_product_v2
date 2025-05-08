@@ -7,8 +7,8 @@ type FilmChange struct {
 }
 
 type OtherFilmInformation struct {
-	PosterUrl  *multipart.FileHeader
-	TrailerUrl *multipart.FileHeader
+	PosterFile  *multipart.FileHeader
+	TrailerFile *multipart.FileHeader
 }
 
 type FilmInformation struct {

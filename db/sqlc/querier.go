@@ -6,17 +6,25 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
 	GetAllFilms(ctx context.Context) ([]GetAllFilmsRow, error)
 	GetFilmByTitle(ctx context.Context, title string) (Films, error)
+	GetPosterUrlByFilmId(ctx context.Context, filmID int32) (pgtype.Text, error)
+	GetTrailerUrlByFilmId(ctx context.Context, filmID int32) (pgtype.Text, error)
 	UpdatePosterUrlAndCheckStatus(ctx context.Context, arg UpdatePosterUrlAndCheckStatusParams) error
 	UpdateVideoUrlAndCheckStatus(ctx context.Context, arg UpdateVideoUrlAndCheckStatusParams) error
+	deleteAllFilmGenresByFilmID(ctx context.Context, filmID pgtype.Int4) error
 	insertFilm(ctx context.Context, arg insertFilmParams) (int32, error)
 	insertFilmChange(ctx context.Context, arg insertFilmChangeParams) error
 	insertFilmGenre(ctx context.Context, arg insertFilmGenreParams) error
 	insertOtherFilmInformation(ctx context.Context, arg insertOtherFilmInformationParams) error
+	updateFilm(ctx context.Context, arg updateFilmParams) error
+	updateFilmChange(ctx context.Context, arg updateFilmChangeParams) error
+	updateFilmInformation(ctx context.Context, arg updateFilmInformationParams) error
 }
 
 var _ Querier = (*Queries)(nil)

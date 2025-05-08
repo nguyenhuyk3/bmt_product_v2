@@ -15,3 +15,13 @@ GROUP BY
     f.id, f.title, f.description, f.release_date, f.duration,
     ofi.status, ofi.poster_url, ofi.trailer_url
 ORDER BY f.release_date DESC;
+
+-- name: GetPosterUrlByFilmId :one
+SELECT poster_url
+FROM other_film_informations
+WHERE film_id = $1;
+
+-- name: GetTrailerUrlByFilmId :one
+SELECT trailer_url
+FROM other_film_informations
+WHERE film_id = $1;

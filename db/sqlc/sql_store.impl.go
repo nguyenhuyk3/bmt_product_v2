@@ -152,6 +152,83 @@ func (s *SqlStore) InsertFilmTran(ctx context.Context, arg request.AddFilmReq) (
 
 // UpdateFilmTran implements IStore.
 func (s *SqlStore) UpdateFilmTran(ctx context.Context, arg request.UpdateFilmReq) error {
+	err := s.execTran(ctx, func(q *Queries) error {
+		interval, err := parseDurationToPGInterval(arg.FilmInformation.Duration)
+		if err != nil {
+			return err
+		}
+
+		releaseDate, err := convertors.GetReleaseDateAsTime(arg.FilmInformation.ReleaseDate)
+		if err != nil {
+			return err
+		}
+
+		filmId, err := strconv.Atoi(arg.FilmId)
+		if err != nil {
+			return fmt.Errorf("invalid filmId '%s': %v", arg.FilmId, err)
+		}
+
+		err = s.deleteAllFilmGenresByFilmID(ctx, pgtype.Int4{
+			Int32: int32(filmId), Valid: true,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to delete existing genres: %v", err)
+		}
+
+		for _, genre := range arg.FilmInformation.Genres {
+			var tmpGenre NullGenres
+			err := tmpGenre.Scan(genre)
+			if err != nil {
+				return fmt.Errorf("failed to scan role: %v", err)
+			}
+
+			err = q.insertFilmGenre(ctx, insertFilmGenreParams{
+				FilmID: pgtype.Int4{
+					Int32: int32(filmId),
+					Valid: true,
+				},
+				Genre: NullGenres{
+					Genres: tmpGenre.Genres,
+					Valid:  true,
+				},
+			})
+			if err != nil {
+				return fmt.Errorf("failed to insert genre %s: %v", genre, err)
+			}
+		}
+
+		err = s.updateFilm(ctx, updateFilmParams{
+			ID:          int32(filmId),
+			Description: arg.FilmInformation.Description,
+			ReleaseDate: pgtype.Date{
+				Time:  releaseDate,
+				Valid: true,
+			},
+			Duration: interval,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to update film: %v", err)
+		}
+
+		err = s.updateFilmChange(ctx, updateFilmChangeParams{
+			FilmID:    int32(filmId),
+			ChangedBy: arg.ChangedBy,
+			UpdatedAt: pgtype.Timestamp{
+				Time: time.Now(), Valid: true,
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to update film change: %v", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		// If the transaction failed, return the error
+		return fmt.Errorf("transaction failed: %v", err)
+	}
+
 	return nil
 }
 

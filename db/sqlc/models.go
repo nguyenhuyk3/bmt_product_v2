@@ -11,6 +11,48 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type FabTypes string
+
+const (
+	FabTypesFood     FabTypes = "food"
+	FabTypesBeverage FabTypes = "beverage"
+)
+
+func (e *FabTypes) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = FabTypes(s)
+	case string:
+		*e = FabTypes(s)
+	default:
+		return fmt.Errorf("unsupported scan type for FabTypes: %T", src)
+	}
+	return nil
+}
+
+type NullFabTypes struct {
+	FabTypes FabTypes `json:"fab_types"`
+	Valid    bool     `json:"valid"` // Valid is true if FabTypes is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullFabTypes) Scan(value interface{}) error {
+	if value == nil {
+		ns.FabTypes, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.FabTypes.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullFabTypes) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.FabTypes), nil
+}
+
 type Genres string
 
 const (
@@ -118,48 +160,6 @@ func (ns NullLanguages) Value() (driver.Value, error) {
 	return string(ns.Languages), nil
 }
 
-type SeatTypes string
-
-const (
-	SeatTypesVip      SeatTypes = "vip"
-	SeatTypesStandard SeatTypes = "standard"
-)
-
-func (e *SeatTypes) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = SeatTypes(s)
-	case string:
-		*e = SeatTypes(s)
-	default:
-		return fmt.Errorf("unsupported scan type for SeatTypes: %T", src)
-	}
-	return nil
-}
-
-type NullSeatTypes struct {
-	SeatTypes SeatTypes `json:"seat_types"`
-	Valid     bool      `json:"valid"` // Valid is true if SeatTypes is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullSeatTypes) Scan(value interface{}) error {
-	if value == nil {
-		ns.SeatTypes, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.SeatTypes.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullSeatTypes) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.SeatTypes), nil
-}
-
 type Statuses string
 
 const (
@@ -203,23 +203,6 @@ func (ns NullStatuses) Value() (driver.Value, error) {
 	return string(ns.Statuses), nil
 }
 
-type Auditoriums struct {
-	ID           int32            `json:"id"`
-	CinemaID     int32            `json:"cinema_id"`
-	Name         string           `json:"name"`
-	SeatCapacity int32            `json:"seat_capacity"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
-	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
-}
-
-type Cinemas struct {
-	ID        int32            `json:"id"`
-	Name      string           `json:"name"`
-	Location  string           `json:"location"`
-	CreatedAt pgtype.Timestamp `json:"created_at"`
-	UpdatedAt pgtype.Timestamp `json:"updated_at"`
-}
-
 type FillmChanges struct {
 	FilmID    int32            `json:"film_id"`
 	ChangedBy string           `json:"changed_by"`
@@ -240,28 +223,20 @@ type Films struct {
 	Duration    pgtype.Interval `json:"duration"`
 }
 
+type FoodAndBeverage struct {
+	ID        int32            `json:"id"`
+	Name      string           `json:"name"`
+	Type      FabTypes         `json:"type"`
+	ImageUrl  pgtype.Text      `json:"image_url"`
+	Price     int32            `json:"price"`
+	IsDeleted bool             `json:"is_deleted"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
+	UpdatedAt pgtype.Timestamp `json:"updated_at"`
+}
+
 type OtherFilmInformations struct {
 	FilmID     int32        `json:"film_id"`
 	Status     NullStatuses `json:"status"`
 	PosterUrl  pgtype.Text  `json:"poster_url"`
 	TrailerUrl pgtype.Text  `json:"trailer_url"`
-}
-
-type Seats struct {
-	ID           int32            `json:"id"`
-	AuditoriumID int32            `json:"auditorium_id"`
-	SeatType     SeatTypes        `json:"seat_type"`
-	SeatNumber   string           `json:"seat_number"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
-	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
-}
-
-type Showtimes struct {
-	ID           int32            `json:"id"`
-	FilmID       int32            `json:"film_id"`
-	AuditoriumID int32            `json:"auditorium_id"`
-	StartTime    pgtype.Timestamp `json:"start_time"`
-	EndTime      pgtype.Timestamp `json:"end_time"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
-	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
 }
