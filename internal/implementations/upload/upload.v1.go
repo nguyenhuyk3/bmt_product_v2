@@ -26,6 +26,7 @@ type UploadService struct {
 const (
 	film_image_base_key = "film-images/"
 	film_video_base_key = "film-videos/"
+	fab_image_base_ket  = "fab-images/"
 )
 
 func extractObjectKeyFromURL(objectURL string) (string, error) {
@@ -60,8 +61,8 @@ func (us *UploadService) DeleteObject(objectURL string) error {
 	return nil
 }
 
-// UploadFilmImageToS3 implements services.IS3.
-func (us *UploadService) UploadFilmImageToS3(message request.UploadImageReq) error {
+// UploadProductImageToS3 implements services.IS3.
+func (us *UploadService) UploadProductImageToS3(message request.UploadImageReq, productType string) error {
 	src, err := message.Image.Open()
 	if err != nil {
 		return fmt.Errorf("can't open file (image): %v", err)
@@ -74,7 +75,16 @@ func (us *UploadService) UploadFilmImageToS3(message request.UploadImageReq) err
 	}
 
 	newFileName := message.ProductId + "-" + uuid.New().String() + ext
-	objectKey := film_image_base_key + newFileName
+	objectKey := ""
+
+	switch productType {
+	case global.FAB_TYPE:
+		objectKey = fab_image_base_ket + newFileName
+	case global.FILM_TYPE:
+		objectKey = film_image_base_key + newFileName
+	default:
+		return fmt.Errorf("invalid product type; %s", productType)
+	}
 
 	_, err = us.S3Client.PutObject(&s3.PutObjectInput{
 		Bucket:      aws.String(global.Config.ServiceSetting.S3Setting.FilmBucketName),

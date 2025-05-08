@@ -41,10 +41,10 @@ func (p *productService) AddFilm(ctx context.Context, arg request.AddFilmReq) (i
 	}()
 
 	go func() {
-		err := p.UploadService.UploadFilmImageToS3(request.UploadImageReq{
+		err := p.UploadService.UploadProductImageToS3(request.UploadImageReq{
 			ProductId: filmId,
 			Image:     arg.OtherFilmInformation.PosterFile,
-		})
+		}, global.FILM_TYPE)
 		if err != nil {
 			log.Printf("an error occurr when updating film poster to S3 (add): %v", err)
 		} else {
@@ -97,10 +97,10 @@ func (p *productService) GetAllFilms(ctx context.Context) (int, interface{}, err
 func (p *productService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq) (int, error) {
 	if arg.OtherFilmInformation.PosterFile != nil {
 		go func() {
-			err := p.UploadService.UploadFilmImageToS3(request.UploadImageReq{
+			err := p.UploadService.UploadProductImageToS3(request.UploadImageReq{
 				ProductId: arg.FilmId,
 				Image:     arg.OtherFilmInformation.PosterFile,
-			})
+			}, global.FILM_TYPE)
 			if err != nil {
 				log.Printf("an error occurr when updating film poster to S3 (update): %v", err)
 			} else {

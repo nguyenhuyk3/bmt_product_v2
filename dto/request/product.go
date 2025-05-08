@@ -48,3 +48,18 @@ type UploadVideoReq struct {
 	ProductId string
 	Video     *multipart.FileHeader
 }
+
+type AddFABReq struct {
+	Name  string
+	Type  string
+	Image *multipart.FileHeader
+	Price int
+}
+
+type UpdateFABReq struct {
+	FABId int32
+	Name  string
+	Type  string
+	Image *multipart.FileHeader
+	Price int
+}
