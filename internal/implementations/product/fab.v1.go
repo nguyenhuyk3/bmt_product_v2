@@ -17,7 +17,6 @@ import (
 type fABService struct {
 	UploadService services.IUpload
 	SqlStore      sqlc.IStore
-	RedisClient   services.IRedis
 }
 
 // AddFAB implements services.IFoodAndBeverage.
@@ -48,7 +47,7 @@ func (f *fABService) AddFAB(ctx context.Context, arg request.AddFABReq) (int, er
 			Image:     arg.Image,
 		}, global.FAB_TYPE)
 		if err != nil {
-			log.Printf("an error occurr when uploading image to S3 (fab): %v", err)
+			log.Printf("an error occur when uploading image to S3 (fab): %v\n", err)
 		} else {
 			log.Println("upload image to S3 successfully (fab)")
 		}
@@ -59,7 +58,10 @@ func (f *fABService) AddFAB(ctx context.Context, arg request.AddFABReq) (int, er
 
 // DeleteFAB implements services.IFoodAndBeverage.
 func (f *fABService) DeleteFAB(ctx context.Context, fABId int32) (int, error) {
-
+	err := f.SqlStore.ToggleFABDelete(ctx, fABId)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("an error occur when toggling fab: %v", err)
+	}
 	return http.StatusOK, nil
 }
 
@@ -70,16 +72,48 @@ func (f *fABService) GetAllFAB(ctx context.Context) (interface{}, int, error) {
 
 // UpdateFAB implements services.IFoodAndBeverage.
 func (f *fABService) UpdateFAB(ctx context.Context, arg request.UpdateFABReq) (int, error) {
-	panic("unimplemented")
+	if arg.Image != nil {
+		go func() {
+			err := f.UploadService.UploadProductImageToS3(request.UploadImageReq{
+				ProductId: strconv.Itoa(int(arg.FABId)),
+				Image:     arg.Image,
+			}, global.FAB_TYPE)
+			if err != nil {
+				log.Printf("an error occur when upading image (fab): %v\n", err)
+			} else {
+				log.Println("upload image to S3 successfully (fab)")
+			}
+		}()
+	}
+	var fabType sqlc.NullFabTypes
+	err := fabType.Scan(arg.Type)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("invalid fab type: %v", err)
+	}
+
+	err = f.SqlStore.UpdateFAB(ctx, sqlc.UpdateFABParams{
+		ID:   arg.FABId,
+		Name: arg.Name,
+		Type: fabType.FabTypes,
+		ImageUrl: pgtype.Text{
+			String: "",
+			Valid:  true,
+		},
+		Price: int32(arg.Price),
+	})
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("an error occur when updating fab product: %v", err)
+	}
+
+	return http.StatusOK, nil
 }
 
 func NewFABService(
 	uploadService services.IUpload,
 	sqlStore sqlc.IStore,
-	redisClient services.IRedis) services.IFoodAndBeverage {
+) services.IFoodAndBeverage {
 	return &fABService{
 		UploadService: uploadService,
 		SqlStore:      sqlStore,
-		RedisClient:   redisClient,
 	}
 }

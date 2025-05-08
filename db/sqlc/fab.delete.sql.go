@@ -9,14 +9,14 @@ import (
 	"context"
 )
 
-const deleteFAB = `-- name: DeleteFAB :exec
+const toggleFABDelete = `-- name: ToggleFABDelete :exec
 UPDATE food_and_beverage
-SET is_deleted = true,
+SET is_deleted = NOT is_deleted,
     updated_at = NOW()
 WHERE id = $1
 `
 
-func (q *Queries) DeleteFAB(ctx context.Context, id int32) error {
-	_, err := q.db.Exec(ctx, deleteFAB, id)
+func (q *Queries) ToggleFABDelete(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, toggleFABDelete, id)
 	return err
 }
