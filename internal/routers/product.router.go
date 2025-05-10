@@ -34,6 +34,7 @@ func (pr *ProductRouter) InitProductRouter(router *gin.RouterGroup) {
 		{
 			fabRouterPrivate.POST("/add", productController.AddFAB)
 			fabRouterPrivate.PUT("/update", productController.UpdateFAB)
+			fabRouterPrivate.POST("/delete/:id", productController.DeleteFAB)
 		}
 	}
 }

@@ -218,3 +218,23 @@ func (pc *ProductController) UpdateFAB(c *gin.Context) {
 
 	responses.SuccessResponse(c, status, "update fab perform successfully", nil)
 }
+
+func (pc *ProductController) DeleteFAB(c *gin.Context) {
+	fABId, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		responses.FailureResponse(c, http.StatusBadRequest, fmt.Sprintf("invalid fab id %s", c.Param("id")))
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+
+	status, err := pc.FABService.DeleteFAB(ctx, int32(fABId))
+
+	if err != nil {
+		responses.FailureResponse(c, status, err.Error())
+		return
+	}
+
+	responses.SuccessResponse(c, status, "delete fab perform successfully", nil)
+}
