@@ -17,16 +17,6 @@ import (
 	"bmt_product_service/internal/injectors/provider"
 )
 
-// Injectors from film_upload_reader.wire.go:
-
-func InitFilmUploadReader() (*readers.FilmUploadReader, error) {
-	iUpload := upload.NewUploadService()
-	iMessageBrokerWriter := writers.NewKafkaWriter()
-	queries := provider.ProvideQueries()
-	filmUploadReader := readers.NewFilmUploadReader(iUpload, iMessageBrokerWriter, queries)
-	return filmUploadReader, nil
-}
-
 // Injectors from product.controller.wire.go:
 
 func InitProductController() (*controllers.ProductController, error) {
@@ -35,6 +25,17 @@ func InitProductController() (*controllers.ProductController, error) {
 	iStore := sqlc.NewStore(pool)
 	iRedis := redis.NewRedisClient()
 	iFilm := product.NewFilmService(iUpload, iStore, iRedis)
-	productController := controllers.NewProductController(iFilm)
+	iFoodAndBeverage := product.NewFABService(iUpload, iStore)
+	productController := controllers.NewProductController(iFilm, iFoodAndBeverage)
 	return productController, nil
+}
+
+// Injectors from product_upload_reader.wire.go:
+
+func InitProductUploadReader() (*readers.ProductUploadReader, error) {
+	iUpload := upload.NewUploadService()
+	iMessageBrokerWriter := writers.NewKafkaWriter()
+	queries := provider.ProvideQueries()
+	productUploadReader := readers.NewProductUploadReader(iUpload, iMessageBrokerWriter, queries)
+	return productUploadReader, nil
 }

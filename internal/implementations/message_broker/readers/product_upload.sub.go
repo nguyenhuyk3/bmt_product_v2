@@ -14,7 +14,7 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-func (f *FilmUploadReader) startReader(topic string) {
+func (p *ProductUploadReader) startReader(topic string) {
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{
 			global.Config.ServiceSetting.KafkaSetting.KafkaBroker_1,
@@ -34,11 +34,11 @@ func (f *FilmUploadReader) startReader(topic string) {
 			continue
 		}
 
-		f.processMessage(topic, message.Value)
+		p.processMessage(topic, message.Value)
 	}
 }
 
-func (f *FilmUploadReader) processMessage(topic string, value []byte) {
+func (p *ProductUploadReader) processMessage(topic string, value []byte) {
 	switch topic {
 	case global.RETURNED_FILM_IMAGE_OBJECT_KEY_TOPIC:
 		var message messages.ReturnedObjectKeyMessage
@@ -47,7 +47,7 @@ func (f *FilmUploadReader) processMessage(topic string, value []byte) {
 			return
 		}
 
-		f.handleImageObjectKeyTopic(message)
+		p.handleImageObjectKeyTopic(message)
 
 	case global.RETURNED_FILM_VIDEO_OBJECT_KEY_TOPIC:
 		var message messages.ReturnedObjectKeyMessage
@@ -56,21 +56,21 @@ func (f *FilmUploadReader) processMessage(topic string, value []byte) {
 			return
 		}
 
-		f.handleVideoObjectKeyTopic(message)
+		p.handleVideoObjectKeyTopic(message)
 
 	default:
 		log.Printf("unknown topic received: %s\n", topic)
 	}
 }
 
-func (f *FilmUploadReader) handleImageObjectKeyTopic(message messages.ReturnedObjectKeyMessage) {
+func (p *ProductUploadReader) handleImageObjectKeyTopic(message messages.ReturnedObjectKeyMessage) {
 	productId, err := strconv.Atoi(message.ProductId)
 	if err != nil {
 		log.Printf("product id (%s) is not in correct format: %v\n", message.ProductId, err)
 		return
 	}
 
-	err = f.SqlQuery.UpdatePosterUrlAndCheckStatus(f.Context, sqlc.UpdatePosterUrlAndCheckStatusParams{
+	err = p.SqlQuery.UpdatePosterUrlAndCheckStatus(p.Context, sqlc.UpdatePosterUrlAndCheckStatusParams{
 		FilmID: int32(productId),
 		PosterUrl: pgtype.Text{
 			String: message.ObjectKey,
@@ -84,14 +84,14 @@ func (f *FilmUploadReader) handleImageObjectKeyTopic(message messages.ReturnedOb
 	}
 }
 
-func (f *FilmUploadReader) handleVideoObjectKeyTopic(message messages.ReturnedObjectKeyMessage) {
+func (p *ProductUploadReader) handleVideoObjectKeyTopic(message messages.ReturnedObjectKeyMessage) {
 	productId, err := strconv.Atoi(message.ProductId)
 	if err != nil {
 		log.Printf("product id (%s) is not in correct format: %v\n", message.ProductId, err)
 		return
 	}
 
-	err = f.SqlQuery.UpdateVideoUrlAndCheckStatus(f.Context, sqlc.UpdateVideoUrlAndCheckStatusParams{
+	err = p.SqlQuery.UpdateVideoUrlAndCheckStatus(p.Context, sqlc.UpdateVideoUrlAndCheckStatusParams{
 		FilmID: int32(productId),
 		TrailerUrl: pgtype.Text{
 			String: message.ObjectKey,

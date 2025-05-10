@@ -7,7 +7,9 @@ import (
 	"bmt_product_service/internal/services"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -15,11 +17,15 @@ import (
 
 type ProductController struct {
 	FilmService services.IFilm
+	FABService  services.IFoodAndBeverage
 }
 
-func NewProductController(filmService services.IFilm) *ProductController {
+func NewProductController(
+	filmService services.IFilm,
+	fABService services.IFoodAndBeverage) *ProductController {
 	return &ProductController{
 		FilmService: filmService,
+		FABService:  fABService,
 	}
 }
 
@@ -135,4 +141,39 @@ func (pc *ProductController) UpdateFilm(c *gin.Context) {
 	}
 
 	responses.SuccessResponse(c, status, "update film perform successfully", nil)
+}
+
+func (pc *ProductController) AddFAB(c *gin.Context) {
+	name := c.PostForm("name")
+	fABType := c.PostForm("type")
+	image, err := c.FormFile("image")
+	if err != nil {
+		responses.FailureResponse(c, http.StatusBadRequest, "no image is uploaded")
+		return
+	}
+
+	price, err := strconv.Atoi(c.PostForm("price"))
+	if err != nil {
+		responses.FailureResponse(c, http.StatusBadRequest, fmt.Sprintf("invalid price %s", c.PostForm("price")))
+		return
+	}
+
+	req := request.AddFABReq{
+		Name:  name,
+		Type:  fABType,
+		Image: image,
+		Price: price,
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+
+	status, err := pc.FABService.AddFAB(ctx, req)
+
+	if err != nil {
+		responses.FailureResponse(c, status, err.Error())
+		return
+	}
+
+	responses.SuccessResponse(c, status, "add fab perform successfully", nil)
 }

@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-type FilmUploadReader struct {
+type ProductUploadReader struct {
 	UploadService services.IUpload
 	Writer        services.IMessageBrokerWriter
 	SqlQuery      sqlc.Querier
@@ -20,12 +20,12 @@ var topics = []string{
 	global.RETURNED_FILM_VIDEO_OBJECT_KEY_TOPIC,
 }
 
-func NewFilmUploadReader(
+func NewProductUploadReader(
 	uploadService services.IUpload,
 	writer services.IMessageBrokerWriter,
 	sqlQuery *sqlc.Queries,
-) *FilmUploadReader {
-	return &FilmUploadReader{
+) *ProductUploadReader {
+	return &ProductUploadReader{
 		UploadService: uploadService,
 		Writer:        writer,
 		SqlQuery:      sqlQuery,
@@ -33,10 +33,10 @@ func NewFilmUploadReader(
 	}
 }
 
-func (f *FilmUploadReader) InitReaders() {
+func (p *ProductUploadReader) InitReaders() {
 	log.Printf("=============== Product Service is listening for film uploading messages... ===============\n\n\n")
 
 	for _, topic := range topics {
-		go f.startReader(topic)
+		go p.startReader(topic)
 	}
 }

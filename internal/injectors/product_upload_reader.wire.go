@@ -9,14 +9,14 @@ import (
 	"github.com/google/wire"
 )
 
-func InitFilmUploadReader() (*readers.FilmUploadReader, error) {
+func InitProductUploadReader() (*readers.ProductUploadReader, error) {
 	wire.Build(
 		uploadServiceSet,
 		kafkaWriterSet,
 
 		provider.ProvideQueries,
-		readers.NewFilmUploadReader,
+		readers.NewProductUploadReader,
 	)
 
-	return &readers.FilmUploadReader{}, nil
+	return nil, nil
 }

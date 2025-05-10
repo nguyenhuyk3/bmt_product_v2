@@ -27,4 +27,12 @@ func (pr *ProductRouter) InitProductRouter(router *gin.RouterGroup) {
 			filmRouterPrivate.GET("/get_all_films", productController.GetAllFilms)
 		}
 	}
+
+	fabRouterPublic := router.Group("/fab")
+	{
+		fabRouterPrivate := fabRouterPublic.Group("/admin")
+		{
+			fabRouterPrivate.POST("/add", productController.AddFAB)
+		}
+	}
 }
