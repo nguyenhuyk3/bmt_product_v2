@@ -16,8 +16,8 @@ type FilmUploadReader struct {
 }
 
 var topics = []string{
-	global.RETURNED_IMAGE_OBJECT_KEY_TOPIC,
-	global.RETURNED_VIDEO_OBJECT_KEY_TOPIC,
+	global.RETURNED_FILM_IMAGE_OBJECT_KEY_TOPIC,
+	global.RETURNED_FILM_VIDEO_OBJECT_KEY_TOPIC,
 }
 
 func NewFilmUploadReader(

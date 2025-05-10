@@ -40,7 +40,7 @@ func (f *FilmUploadReader) startReader(topic string) {
 
 func (f *FilmUploadReader) processMessage(topic string, value []byte) {
 	switch topic {
-	case global.RETURNED_IMAGE_OBJECT_KEY_TOPIC:
+	case global.RETURNED_FILM_IMAGE_OBJECT_KEY_TOPIC:
 		var message messages.ReturnedObjectKeyMessage
 		if err := json.Unmarshal(value, &message); err != nil {
 			log.Printf("failed to unmarshal image message: %v\n", err)
@@ -49,7 +49,7 @@ func (f *FilmUploadReader) processMessage(topic string, value []byte) {
 
 		f.handleImageObjectKeyTopic(message)
 
-	case global.RETURNED_VIDEO_OBJECT_KEY_TOPIC:
+	case global.RETURNED_FILM_VIDEO_OBJECT_KEY_TOPIC:
 		var message messages.ReturnedObjectKeyMessage
 		if err := json.Unmarshal(value, &message); err != nil {
 			log.Printf("failed to unmarshal image message: %v\n", err)
@@ -66,7 +66,7 @@ func (f *FilmUploadReader) processMessage(topic string, value []byte) {
 func (f *FilmUploadReader) handleImageObjectKeyTopic(message messages.ReturnedObjectKeyMessage) {
 	productId, err := strconv.Atoi(message.ProductId)
 	if err != nil {
-		log.Printf("product_id (%s) is not in correct format: %v\n", message.ProductId, err)
+		log.Printf("product id (%s) is not in correct format: %v\n", message.ProductId, err)
 		return
 	}
 
@@ -87,7 +87,7 @@ func (f *FilmUploadReader) handleImageObjectKeyTopic(message messages.ReturnedOb
 func (f *FilmUploadReader) handleVideoObjectKeyTopic(message messages.ReturnedObjectKeyMessage) {
 	productId, err := strconv.Atoi(message.ProductId)
 	if err != nil {
-		log.Printf("product_id (%s) is not in correct format: %v\n", message.ProductId, err)
+		log.Printf("product id (%s) is not in correct format: %v\n", message.ProductId, err)
 		return
 	}
 

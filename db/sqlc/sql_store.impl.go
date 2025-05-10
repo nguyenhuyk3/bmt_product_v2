@@ -199,6 +199,7 @@ func (s *SqlStore) UpdateFilmTran(ctx context.Context, arg request.UpdateFilmReq
 
 		err = s.updateFilm(ctx, updateFilmParams{
 			ID:          int32(filmId),
+			Title:       arg.FilmInformation.Title,
 			Description: arg.FilmInformation.Description,
 			ReleaseDate: pgtype.Date{
 				Time:  releaseDate,

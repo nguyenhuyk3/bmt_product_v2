@@ -110,9 +110,9 @@ func (p *productService) UpdateFilm(ctx context.Context, arg request.UpdateFilmR
 					return
 				}
 
-				objectKey, err := p.SqlStore.GetPosterUrlByFilmId(ctx, int32(filmId))
+				objectKey, err := p.SqlStore.GetPosterUrlByFilmId(context.Background(), int32(filmId))
 				if err != nil {
-					log.Printf("failed to get poster URL: %v\n", err)
+					log.Printf("failed to get poster URL: %d %v\n", filmId, err)
 					return
 				}
 
@@ -148,9 +148,9 @@ func (p *productService) UpdateFilm(ctx context.Context, arg request.UpdateFilmR
 					return
 				}
 
-				objectKey, err := p.SqlStore.GetTrailerUrlByFilmId(ctx, int32(filmId))
+				objectKey, err := p.SqlStore.GetTrailerUrlByFilmId(context.Background(), int32(filmId))
 				if err != nil {
-					log.Printf("failed to get trailer URL: %v\n", err)
+					log.Printf("failed to get trailer URL: %d %v\n", filmId, err)
 					return
 				}
 

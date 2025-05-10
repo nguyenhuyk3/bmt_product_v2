@@ -47,7 +47,7 @@ func (f *fABService) AddFAB(ctx context.Context, arg request.AddFABReq) (int, er
 			Image:     arg.Image,
 		}, global.FAB_TYPE)
 		if err != nil {
-			log.Printf("an error occur when uploading image to S3 (fab): %v\n", err)
+			log.Printf("an error occur when uploading image to S3 (fab): %v", err)
 		} else {
 			log.Println("upload image to S3 successfully (fab)")
 		}
@@ -79,7 +79,7 @@ func (f *fABService) UpdateFAB(ctx context.Context, arg request.UpdateFABReq) (i
 				Image:     arg.Image,
 			}, global.FAB_TYPE)
 			if err != nil {
-				log.Printf("an error occur when upading image (fab): %v\n", err)
+				log.Printf("an error occur when upading image (fab): %v", err)
 			} else {
 				log.Println("upload image to S3 successfully (fab)")
 			}
