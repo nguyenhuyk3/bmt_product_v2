@@ -14,12 +14,12 @@ import (
 )
 
 type ProductController struct {
-	ProductService services.IFilm
+	FilmService services.IFilm
 }
 
-func NewProductController(productService services.IFilm) *ProductController {
+func NewProductController(filmService services.IFilm) *ProductController {
 	return &ProductController{
-		ProductService: productService,
+		FilmService: filmService,
 	}
 }
 
@@ -66,7 +66,7 @@ func (pc *ProductController) AddFilm(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
 
-	status, err := pc.ProductService.AddFilm(ctx, req)
+	status, err := pc.FilmService.AddFilm(ctx, req)
 	if err != nil {
 		responses.FailureResponse(c, status, err.Error())
 		return
@@ -79,7 +79,7 @@ func (pc *ProductController) GetAllFilms(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
 
-	status, films, err := pc.ProductService.GetAllFilms(ctx)
+	status, films, err := pc.FilmService.GetAllFilms(ctx)
 	if err != nil {
 		responses.FailureResponse(c, status, err.Error())
 		return
@@ -128,7 +128,7 @@ func (pc *ProductController) UpdateFilm(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
 	defer cancel()
 
-	status, err := pc.ProductService.UpdateFilm(ctx, req)
+	status, err := pc.FilmService.UpdateFilm(ctx, req)
 	if err != nil {
 		responses.FailureResponse(c, status, err.Error())
 		return

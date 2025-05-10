@@ -15,7 +15,7 @@ func InitProductController() (*controllers.ProductController, error) {
 		dbSet,
 		redisSet,
 
-		product.NewProductService,
+		product.NewFilmService,
 		controllers.NewProductController,
 	)
 

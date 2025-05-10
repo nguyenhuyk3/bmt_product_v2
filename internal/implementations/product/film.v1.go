@@ -12,17 +12,17 @@ import (
 	"strconv"
 )
 
-type productService struct {
+type filmService struct {
 	UploadService services.IUpload
 	SqlStore      sqlc.IStore
 	RedisClient   services.IRedis
 }
 
-func NewProductService(
+func NewFilmService(
 	uploadService services.IUpload,
 	sqlStore sqlc.IStore,
 	redisClient services.IRedis) services.IFilm {
-	return &productService{
+	return &filmService{
 		UploadService: uploadService,
 		SqlStore:      sqlStore,
 		RedisClient:   redisClient,
@@ -30,7 +30,7 @@ func NewProductService(
 }
 
 // AddFilm implements services.IFilm.
-func (p *productService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int, error) {
+func (p *filmService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int, error) {
 	filmId, err := p.SqlStore.InsertFilmTran(ctx, arg)
 	if err != nil {
 		return http.StatusInternalServerError, err
@@ -68,7 +68,7 @@ func (p *productService) AddFilm(ctx context.Context, arg request.AddFilmReq) (i
 }
 
 // GetAllFilms implements services.IFilm.
-func (p *productService) GetAllFilms(ctx context.Context) (int, interface{}, error) {
+func (p *filmService) GetAllFilms(ctx context.Context) (int, interface{}, error) {
 	var films []sqlc.GetAllFilmsRow
 
 	err := p.RedisClient.Get(global.GET_ALL_FILMS_WITH_ADMIN_ROLE, &films)
@@ -94,7 +94,7 @@ func (p *productService) GetAllFilms(ctx context.Context) (int, interface{}, err
 }
 
 // UpdateFilm implements services.IFilm.
-func (p *productService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq) (int, error) {
+func (p *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq) (int, error) {
 	if arg.OtherFilmInformation.PosterFile != nil {
 		go func() {
 			err := p.UploadService.UploadProductImageToS3(request.UploadImageReq{

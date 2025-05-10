@@ -34,7 +34,7 @@ func InitProductController() (*controllers.ProductController, error) {
 	pool := provider.ProvidePgxPool()
 	iStore := sqlc.NewStore(pool)
 	iRedis := redis.NewRedisClient()
-	iFilm := product.NewProductService(iUpload, iStore, iRedis)
+	iFilm := product.NewFilmService(iUpload, iStore, iRedis)
 	productController := controllers.NewProductController(iFilm)
 	return productController, nil
 }
