@@ -8,7 +8,7 @@ import (
 func InitFilmUploadConsummer() {
 	filmUploadConsummer, err := injectors.InitProductUploadReader()
 	if err != nil {
-		log.Fatalf("an error occur when initiallizating PRODUCT UPLOAD READER: %v\n", err)
+		log.Fatalf("an error occur when initiallizating PRODUCT UPLOAD READERs: %v\n", err)
 	}
 
 	filmUploadConsummer.InitReaders()

@@ -13,6 +13,7 @@ import (
 type Querier interface {
 	GetAllFilms(ctx context.Context) ([]GetAllFilmsRow, error)
 	GetFABById(ctx context.Context, id int32) (FoodAndBeverage, error)
+	GetFABImageURLByID(ctx context.Context, id int32) (pgtype.Text, error)
 	GetFilmByTitle(ctx context.Context, title string) (Films, error)
 	GetPosterUrlByFilmId(ctx context.Context, filmID int32) (pgtype.Text, error)
 	GetTrailerUrlByFilmId(ctx context.Context, filmID int32) (pgtype.Text, error)
@@ -20,6 +21,7 @@ type Querier interface {
 	ListFAB(ctx context.Context) ([]FoodAndBeverage, error)
 	ToggleFABDelete(ctx context.Context, id int32) error
 	UpdateFAB(ctx context.Context, arg UpdateFABParams) error
+	UpdateFABImageURL(ctx context.Context, arg UpdateFABImageURLParams) error
 	UpdatePosterUrlAndCheckStatus(ctx context.Context, arg UpdatePosterUrlAndCheckStatusParams) error
 	UpdateVideoUrlAndCheckStatus(ctx context.Context, arg UpdateVideoUrlAndCheckStatusParams) error
 	deleteAllFilmGenresByFilmID(ctx context.Context, filmID pgtype.Int4) error

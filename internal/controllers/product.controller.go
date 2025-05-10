@@ -177,3 +177,44 @@ func (pc *ProductController) AddFAB(c *gin.Context) {
 
 	responses.SuccessResponse(c, status, "add fab perform successfully", nil)
 }
+
+func (pc *ProductController) UpdateFAB(c *gin.Context) {
+	fABId, err := strconv.Atoi(c.PostForm("fab_id"))
+	if err != nil {
+		responses.FailureResponse(c, http.StatusBadRequest, fmt.Sprintf("invalid fab id %s", c.PostForm("fab_id")))
+		return
+	}
+	name := c.PostForm("name")
+	fABType := c.PostForm("type")
+	image, err := c.FormFile("image")
+	if err != nil {
+		responses.FailureResponse(c, http.StatusBadRequest, "no image is uploaded")
+		return
+	}
+
+	price, err := strconv.Atoi(c.PostForm("price"))
+	if err != nil {
+		responses.FailureResponse(c, http.StatusBadRequest, fmt.Sprintf("invalid price %s", c.PostForm("price")))
+		return
+	}
+
+	req := request.UpdateFABReq{
+		FABId: int32(fABId),
+		Name:  name,
+		Type:  fABType,
+		Image: image,
+		Price: price,
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+
+	status, err := pc.FABService.UpdateFAB(ctx, req)
+
+	if err != nil {
+		responses.FailureResponse(c, status, err.Error())
+		return
+	}
+
+	responses.SuccessResponse(c, status, "update fab perform successfully", nil)
+}

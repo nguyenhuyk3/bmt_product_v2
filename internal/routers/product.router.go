@@ -33,6 +33,7 @@ func (pr *ProductRouter) InitProductRouter(router *gin.RouterGroup) {
 		fabRouterPrivate := fabRouterPublic.Group("/admin")
 		{
 			fabRouterPrivate.POST("/add", productController.AddFAB)
+			fabRouterPrivate.PUT("/update", productController.UpdateFAB)
 		}
 	}
 }

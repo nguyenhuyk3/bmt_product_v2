@@ -7,6 +7,8 @@ package sqlc
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getFABById = `-- name: GetFABById :one
@@ -28,6 +30,19 @@ func (q *Queries) GetFABById(ctx context.Context, id int32) (FoodAndBeverage, er
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const getFABImageURLByID = `-- name: GetFABImageURLByID :one
+SELECT image_url
+FROM food_and_beverage
+WHERE id = $1
+`
+
+func (q *Queries) GetFABImageURLByID(ctx context.Context, id int32) (pgtype.Text, error) {
+	row := q.db.QueryRow(ctx, getFABImageURLByID, id)
+	var image_url pgtype.Text
+	err := row.Scan(&image_url)
+	return image_url, err
 }
 
 const listFAB = `-- name: ListFAB :many

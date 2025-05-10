@@ -15,18 +15,16 @@ const updateFAB = `-- name: UpdateFAB :exec
 UPDATE food_and_beverage
 SET name = $2,
     type = $3,
-    image_url = $4,
-    price = $5,
+    price = $4,
     updated_at = NOW()
 WHERE id = $1 AND is_deleted = false
 `
 
 type UpdateFABParams struct {
-	ID       int32       `json:"id"`
-	Name     string      `json:"name"`
-	Type     FabTypes    `json:"type"`
-	ImageUrl pgtype.Text `json:"image_url"`
-	Price    int32       `json:"price"`
+	ID    int32    `json:"id"`
+	Name  string   `json:"name"`
+	Type  FabTypes `json:"type"`
+	Price int32    `json:"price"`
 }
 
 func (q *Queries) UpdateFAB(ctx context.Context, arg UpdateFABParams) error {
@@ -34,8 +32,24 @@ func (q *Queries) UpdateFAB(ctx context.Context, arg UpdateFABParams) error {
 		arg.ID,
 		arg.Name,
 		arg.Type,
-		arg.ImageUrl,
 		arg.Price,
 	)
+	return err
+}
+
+const updateFABImageURL = `-- name: UpdateFABImageURL :exec
+UPDATE food_and_beverage
+SET image_url = $1,
+    updated_at = NOW()
+WHERE id = $2
+`
+
+type UpdateFABImageURLParams struct {
+	ImageUrl pgtype.Text `json:"image_url"`
+	ID       int32       `json:"id"`
+}
+
+func (q *Queries) UpdateFABImageURL(ctx context.Context, arg UpdateFABImageURLParams) error {
+	_, err := q.db.Exec(ctx, updateFABImageURL, arg.ImageUrl, arg.ID)
 	return err
 }

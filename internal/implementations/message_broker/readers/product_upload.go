@@ -18,6 +18,7 @@ type ProductUploadReader struct {
 var topics = []string{
 	global.RETURNED_FILM_IMAGE_OBJECT_KEY_TOPIC,
 	global.RETURNED_FILM_VIDEO_OBJECT_KEY_TOPIC,
+	global.RETURNED_FAB_IMAGE_OBJECT_KEY_TOPIC,
 }
 
 func NewProductUploadReader(

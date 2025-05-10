@@ -47,7 +47,7 @@ func (p *ProductUploadReader) processMessage(topic string, value []byte) {
 			return
 		}
 
-		p.handleImageObjectKeyTopic(message)
+		p.handleFilmImageObjectKeyTopic(message)
 
 	case global.RETURNED_FILM_VIDEO_OBJECT_KEY_TOPIC:
 		var message messages.ReturnedObjectKeyMessage
@@ -56,17 +56,25 @@ func (p *ProductUploadReader) processMessage(topic string, value []byte) {
 			return
 		}
 
-		p.handleVideoObjectKeyTopic(message)
+		p.handleFilmVideoObjectKeyTopic(message)
+	case global.RETURNED_FAB_IMAGE_OBJECT_KEY_TOPIC:
+		var message messages.ReturnedObjectKeyMessage
+		if err := json.Unmarshal(value, &message); err != nil {
+			log.Printf("failed to unmarshal image message: %v\n", err)
+			return
+		}
 
+		time.Sleep(1 * time.Second)
+		p.handleFABImageObjectKeyTopic(message)
 	default:
 		log.Printf("unknown topic received: %s\n", topic)
 	}
 }
 
-func (p *ProductUploadReader) handleImageObjectKeyTopic(message messages.ReturnedObjectKeyMessage) {
+func (p *ProductUploadReader) handleFilmImageObjectKeyTopic(message messages.ReturnedObjectKeyMessage) {
 	productId, err := strconv.Atoi(message.ProductId)
 	if err != nil {
-		log.Printf("product id (%s) is not in correct format: %v\n", message.ProductId, err)
+		log.Printf("product id (%s) is not in correct format (film image): %v\n", message.ProductId, err)
 		return
 	}
 
@@ -84,10 +92,10 @@ func (p *ProductUploadReader) handleImageObjectKeyTopic(message messages.Returne
 	}
 }
 
-func (p *ProductUploadReader) handleVideoObjectKeyTopic(message messages.ReturnedObjectKeyMessage) {
+func (p *ProductUploadReader) handleFilmVideoObjectKeyTopic(message messages.ReturnedObjectKeyMessage) {
 	productId, err := strconv.Atoi(message.ProductId)
 	if err != nil {
-		log.Printf("product id (%s) is not in correct format: %v\n", message.ProductId, err)
+		log.Printf("product id (%s) is not in correct format (film video): %v\n", message.ProductId, err)
 		return
 	}
 
@@ -102,5 +110,26 @@ func (p *ProductUploadReader) handleVideoObjectKeyTopic(message messages.Returne
 		log.Printf("failed to update trailer url for film id %d: %v\n", productId, err)
 	} else {
 		log.Printf("update trailer url for film id %d successfully\n", productId)
+	}
+}
+
+func (p *ProductUploadReader) handleFABImageObjectKeyTopic(message messages.ReturnedObjectKeyMessage) {
+	productId, err := strconv.Atoi(message.ProductId)
+	if err != nil {
+		log.Printf("product id (%s) is not in correct format (fab image): %v\n", message.ProductId, err)
+		return
+	}
+
+	err = p.SqlQuery.UpdateFABImageURL(p.Context, sqlc.UpdateFABImageURLParams{
+		ID: int32(productId),
+		ImageUrl: pgtype.Text{
+			String: message.ObjectKey,
+			Valid:  true,
+		},
+	})
+	if err != nil {
+		log.Printf("failed to update image url for fab id %d: %v\n", productId, err)
+	} else {
+		log.Printf("update image url for fab id %d successfully\n", productId)
 	}
 }

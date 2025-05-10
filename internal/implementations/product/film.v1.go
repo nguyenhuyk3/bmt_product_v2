@@ -117,7 +117,7 @@ func (p *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq)
 				}
 
 				if objectKey.String == "" {
-					log.Println("no poster URL to delete")
+					log.Println("no poster URL to delete (film poster)")
 					return
 				}
 
@@ -155,7 +155,7 @@ func (p *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq)
 				}
 
 				if objectKey.String == "" {
-					log.Println("no trailer URL to delete")
+					log.Println("no trailer URL to delete (film video)")
 					return
 				}
 

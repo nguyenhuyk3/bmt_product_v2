@@ -81,6 +81,23 @@ func (f *fABService) UpdateFAB(ctx context.Context, arg request.UpdateFABReq) (i
 			if err != nil {
 				log.Printf("an error occur when upading image (fab): %v", err)
 			} else {
+				objectKey, err := f.SqlStore.GetFABImageURLByID(context.Background(), arg.FABId)
+				if err != nil {
+					log.Printf("failed to get image URL (fab): %d %v\n", arg.FABId, err)
+					return
+				}
+
+				if objectKey.String == "" {
+					log.Printf("no image URL to delete (fab) with id: %d", arg.FABId)
+					return
+				}
+
+				err = f.UploadService.DeleteObject(objectKey.String)
+				if err != nil {
+					log.Printf("failed to delete image from S3 (fab): %v\n", err)
+					return
+				}
+
 				log.Println("upload image to S3 successfully (fab)")
 			}
 		}()
@@ -92,13 +109,9 @@ func (f *fABService) UpdateFAB(ctx context.Context, arg request.UpdateFABReq) (i
 	}
 
 	err = f.SqlStore.UpdateFAB(ctx, sqlc.UpdateFABParams{
-		ID:   arg.FABId,
-		Name: arg.Name,
-		Type: fabType.FabTypes,
-		ImageUrl: pgtype.Text{
-			String: "",
-			Valid:  true,
-		},
+		ID:    arg.FABId,
+		Name:  arg.Name,
+		Type:  fabType.FabTypes,
 		Price: int32(arg.Price),
 	})
 	if err != nil {
