@@ -45,6 +45,19 @@ func (q *Queries) GetFABImageURLByID(ctx context.Context, id int32) (pgtype.Text
 	return image_url, err
 }
 
+const isFilmExist = `-- name: IsFilmExist :one
+SELECT EXISTS (
+    SELECT 1 FROM films WHERE id = $1
+) AS EXISTS
+`
+
+func (q *Queries) IsFilmExist(ctx context.Context, id int32) (bool, error) {
+	row := q.db.QueryRow(ctx, isFilmExist, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const listFAB = `-- name: ListFAB :many
 SELECT id, name, type, image_url, price, is_deleted, created_at, updated_at FROM food_and_beverage
 ORDER BY created_at DESC

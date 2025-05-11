@@ -72,6 +72,14 @@ func (f *fABService) GetAllFAB(ctx context.Context) (interface{}, int, error) {
 
 // UpdateFAB implements services.IFoodAndBeverage.
 func (f *fABService) UpdateFAB(ctx context.Context, arg request.UpdateFABReq) (int, error) {
+	isExist, err := f.SqlStore.IsFilmExist(ctx, arg.FABId)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("an error occur when querying database: %v", err)
+	}
+	if !isExist {
+		return http.StatusNotFound, fmt.Errorf("film doesn't exist")
+	}
+
 	if arg.Image != nil {
 		go func() {
 			err := f.UploadService.UploadProductImageToS3(request.UploadImageReq{
@@ -103,7 +111,7 @@ func (f *fABService) UpdateFAB(ctx context.Context, arg request.UpdateFABReq) (i
 		}()
 	}
 	var fabType sqlc.NullFabTypes
-	err := fabType.Scan(arg.Type)
+	err = fabType.Scan(arg.Type)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("invalid fab type: %v", err)
 	}

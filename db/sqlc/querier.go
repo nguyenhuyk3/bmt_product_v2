@@ -18,6 +18,7 @@ type Querier interface {
 	GetPosterUrlByFilmId(ctx context.Context, filmID int32) (pgtype.Text, error)
 	GetTrailerUrlByFilmId(ctx context.Context, filmID int32) (pgtype.Text, error)
 	InsertFAB(ctx context.Context, arg InsertFABParams) (int32, error)
+	IsFilmExist(ctx context.Context, id int32) (bool, error)
 	ListFAB(ctx context.Context) ([]FoodAndBeverage, error)
 	ToggleFABDelete(ctx context.Context, id int32) error
 	UpdateFAB(ctx context.Context, arg UpdateFABParams) error
