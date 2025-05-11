@@ -111,3 +111,16 @@ func (q *Queries) GetTrailerUrlByFilmId(ctx context.Context, filmID int32) (pgty
 	err := row.Scan(&trailer_url)
 	return trailer_url, err
 }
+
+const isFilmExist = `-- name: IsFilmExist :one
+SELECT EXISTS (
+    SELECT 1 FROM films WHERE id = $1
+) AS EXISTS
+`
+
+func (q *Queries) IsFilmExist(ctx context.Context, id int32) (bool, error) {
+	row := q.db.QueryRow(ctx, isFilmExist, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}

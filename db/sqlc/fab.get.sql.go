@@ -45,14 +45,14 @@ func (q *Queries) GetFABImageURLByID(ctx context.Context, id int32) (pgtype.Text
 	return image_url, err
 }
 
-const isFilmExist = `-- name: IsFilmExist :one
+const isFABExist = `-- name: IsFABExist :one
 SELECT EXISTS (
-    SELECT 1 FROM films WHERE id = $1
+    SELECT 1 FROM food_and_beverage WHERE id = $1
 ) AS EXISTS
 `
 
-func (q *Queries) IsFilmExist(ctx context.Context, id int32) (bool, error) {
-	row := q.db.QueryRow(ctx, isFilmExist, id)
+func (q *Queries) IsFABExist(ctx context.Context, id int32) (bool, error) {
+	row := q.db.QueryRow(ctx, isFABExist, id)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err

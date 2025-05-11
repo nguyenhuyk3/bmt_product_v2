@@ -30,18 +30,18 @@ func NewFilmService(
 }
 
 // AddFilm implements services.IFilm.
-func (p *filmService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int, error) {
-	filmId, err := p.SqlStore.InsertFilmTran(ctx, arg)
+func (f *filmService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int, error) {
+	filmId, err := f.SqlStore.InsertFilmTran(ctx, arg)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
 	go func() {
-		p.RedisClient.Save(fmt.Sprintf("%s%s", global.FILM, filmId), filmId, 60*24*30)
+		f.RedisClient.Save(fmt.Sprintf("%s%s", global.FILM, filmId), filmId, 60*24*30)
 	}()
 
 	go func() {
-		err := p.UploadService.UploadProductImageToS3(request.UploadImageReq{
+		err := f.UploadService.UploadProductImageToS3(request.UploadImageReq{
 			ProductId: filmId,
 			Image:     arg.OtherFilmInformation.PosterFile,
 		}, global.FILM_TYPE)
@@ -53,7 +53,7 @@ func (p *filmService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int,
 	}()
 
 	go func() {
-		err := p.UploadService.UploadFilmVideoToS3(request.UploadVideoReq{
+		err := f.UploadService.UploadFilmVideoToS3(request.UploadVideoReq{
 			ProductId: filmId,
 			Video:     arg.OtherFilmInformation.TrailerFile,
 		})
@@ -68,18 +68,18 @@ func (p *filmService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int,
 }
 
 // GetAllFilms implements services.IFilm.
-func (p *filmService) GetAllFilms(ctx context.Context) (int, interface{}, error) {
+func (f *filmService) GetAllFilms(ctx context.Context) (int, interface{}, error) {
 	var films []sqlc.GetAllFilmsRow
 
-	err := p.RedisClient.Get(global.GET_ALL_FILMS_WITH_ADMIN_ROLE, &films)
+	err := f.RedisClient.Get(global.GET_ALL_FILMS_WITH_ADMIN_ROLE, &films)
 	if err != nil {
 		if err.Error() == fmt.Sprintf("key %s does not exist", global.GET_ALL_FILMS_WITH_ADMIN_ROLE) {
-			films, err = p.SqlStore.GetAllFilms(ctx)
+			films, err = f.SqlStore.GetAllFilms(ctx)
 			if err != nil {
 				return http.StatusInternalServerError, nil, err
 			}
 
-			savingErr := p.RedisClient.Save(global.GET_ALL_FILMS_WITH_ADMIN_ROLE, &films, 60*24*10)
+			savingErr := f.RedisClient.Save(global.GET_ALL_FILMS_WITH_ADMIN_ROLE, &films, 60*24*10)
 			if savingErr != nil {
 				return http.StatusOK, nil, fmt.Errorf("warning: failed to save to Redis: %v", savingErr)
 			}
@@ -94,10 +94,23 @@ func (p *filmService) GetAllFilms(ctx context.Context) (int, interface{}, error)
 }
 
 // UpdateFilm implements services.IFilm.
-func (p *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq) (int, error) {
+func (f *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq) (int, error) {
+	filmId, err := strconv.Atoi(arg.FilmId)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("invalid film id (%s): %v", arg.FilmId, err)
+	}
+
+	isExist, err := f.SqlStore.IsFilmExist(ctx, int32(filmId))
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("an error occur when querying database: %v", err)
+	}
+	if !isExist {
+		return http.StatusNotFound, fmt.Errorf("film doesn't exist")
+	}
+
 	if arg.OtherFilmInformation.PosterFile != nil {
 		go func() {
-			err := p.UploadService.UploadProductImageToS3(request.UploadImageReq{
+			err := f.UploadService.UploadProductImageToS3(request.UploadImageReq{
 				ProductId: arg.FilmId,
 				Image:     arg.OtherFilmInformation.PosterFile,
 			}, global.FILM_TYPE)
@@ -110,7 +123,7 @@ func (p *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq)
 					return
 				}
 
-				objectKey, err := p.SqlStore.GetPosterUrlByFilmId(context.Background(), int32(filmId))
+				objectKey, err := f.SqlStore.GetPosterUrlByFilmId(context.Background(), int32(filmId))
 				if err != nil {
 					log.Printf("failed to get poster URL: %d %v\n", filmId, err)
 					return
@@ -121,7 +134,7 @@ func (p *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq)
 					return
 				}
 
-				err = p.UploadService.DeleteObject(objectKey.String)
+				err = f.UploadService.DeleteObject(objectKey.String)
 				if err != nil {
 					log.Printf("failed to delete poster from S3: %v\n", err)
 					return
@@ -135,7 +148,7 @@ func (p *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq)
 
 	if arg.OtherFilmInformation.TrailerFile != nil {
 		go func() {
-			err := p.UploadService.UploadFilmVideoToS3(request.UploadVideoReq{
+			err := f.UploadService.UploadFilmVideoToS3(request.UploadVideoReq{
 				ProductId: arg.FilmId,
 				Video:     arg.OtherFilmInformation.TrailerFile,
 			})
@@ -148,7 +161,7 @@ func (p *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq)
 					return
 				}
 
-				objectKey, err := p.SqlStore.GetTrailerUrlByFilmId(context.Background(), int32(filmId))
+				objectKey, err := f.SqlStore.GetTrailerUrlByFilmId(context.Background(), int32(filmId))
 				if err != nil {
 					log.Printf("failed to get trailer URL: %d %v\n", filmId, err)
 					return
@@ -159,7 +172,7 @@ func (p *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq)
 					return
 				}
 
-				err = p.UploadService.DeleteObject(objectKey.String)
+				err = f.UploadService.DeleteObject(objectKey.String)
 				if err != nil {
 					log.Printf("failed to delete trailer from S3: %v\n", err)
 					return
@@ -170,7 +183,7 @@ func (p *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq)
 		}()
 	}
 
-	err := p.SqlStore.UpdateFilmTran(ctx, arg)
+	err = f.SqlStore.UpdateFilmTran(ctx, arg)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

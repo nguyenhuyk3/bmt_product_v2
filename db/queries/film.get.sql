@@ -25,3 +25,8 @@ WHERE film_id = $1;
 SELECT trailer_url
 FROM other_film_informations
 WHERE film_id = $1;
+
+-- name: IsFilmExist :one
+SELECT EXISTS (
+    SELECT 1 FROM films WHERE id = $1
+) AS EXISTS;

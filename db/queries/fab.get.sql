@@ -11,8 +11,8 @@ SELECT image_url
 FROM food_and_beverage
 WHERE id = $1;
 
--- name: IsFilmExist :one
+-- name: IsFABExist :one
 SELECT EXISTS (
-    SELECT 1 FROM films WHERE id = $1
+    SELECT 1 FROM food_and_beverage WHERE id = $1
 ) AS EXISTS;
 
