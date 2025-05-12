@@ -29,6 +29,10 @@ func NewFilmService(
 	}
 }
 
+const (
+	thirty_days = 60 * 24 * 30
+)
+
 // AddFilm implements services.IFilm.
 func (f *filmService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int, error) {
 	filmId, err := f.SqlStore.InsertFilmTran(ctx, arg)
@@ -37,7 +41,7 @@ func (f *filmService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int,
 	}
 
 	go func() {
-		f.RedisClient.Save(fmt.Sprintf("%s%s", global.FILM, filmId), filmId, 60*24*30)
+		f.RedisClient.Save(fmt.Sprintf("%s%s", global.FILM, filmId), true, thirty_days)
 	}()
 
 	go func() {
@@ -187,6 +191,22 @@ func (f *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+
+	return http.StatusOK, nil
+}
+
+// CheckAndCacheFilmExistence implements services.IFilm.
+func (f *filmService) CheckAndCacheFilmExistence(ctx context.Context, filmdId int32) (int, error) {
+	isExists, err := f.SqlStore.IsFilmExist(ctx, filmdId)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("an error occur when performing query: %v", err)
+	}
+
+	if !isExists {
+		return http.StatusNotFound, fmt.Errorf("film doesn't exist")
+	}
+
+	f.RedisClient.Save(fmt.Sprintf("%s%s", global.FILM, filmdId), true, thirty_days)
 
 	return http.StatusOK, nil
 }

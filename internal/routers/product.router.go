@@ -25,6 +25,7 @@ func (pr *ProductRouter) InitProductRouter(router *gin.RouterGroup) {
 			filmRouterPrivate.POST("/add", getFromHeaderMiddleware.GetEmailFromHeader(), productController.AddFilm)
 			filmRouterPrivate.PUT("/update", getFromHeaderMiddleware.GetEmailFromHeader(), productController.UpdateFilm)
 			filmRouterPrivate.GET("/get_all_films", productController.GetAllFilms)
+			filmRouterPrivate.POST("check_and_cache_film_existence", productController.CheckAndCacheFilmExistence)
 		}
 	}
 

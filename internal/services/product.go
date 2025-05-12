@@ -9,6 +9,7 @@ type IFilm interface {
 	AddFilm(ctx context.Context, arg request.AddFilmReq) (int, error)
 	UpdateFilm(ctx context.Context, arg request.UpdateFilmReq) (int, error)
 	GetAllFilms(ctx context.Context) (int, interface{}, error)
+	CheckAndCacheFilmExistence(ctx context.Context, filmdId int32) (int, error)
 }
 
 type IFoodAndBeverage interface {

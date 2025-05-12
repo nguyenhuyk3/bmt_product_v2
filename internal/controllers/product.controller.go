@@ -169,7 +169,6 @@ func (pc *ProductController) AddFAB(c *gin.Context) {
 	defer cancel()
 
 	status, err := pc.FABService.AddFAB(ctx, req)
-
 	if err != nil {
 		responses.FailureResponse(c, status, err.Error())
 		return
@@ -210,7 +209,6 @@ func (pc *ProductController) UpdateFAB(c *gin.Context) {
 	defer cancel()
 
 	status, err := pc.FABService.UpdateFAB(ctx, req)
-
 	if err != nil {
 		responses.FailureResponse(c, status, err.Error())
 		return
@@ -230,11 +228,29 @@ func (pc *ProductController) DeleteFAB(c *gin.Context) {
 	defer cancel()
 
 	status, err := pc.FABService.DeleteFAB(ctx, int32(fABId))
-
 	if err != nil {
 		responses.FailureResponse(c, status, err.Error())
 		return
 	}
 
 	responses.SuccessResponse(c, status, "delete fab perform successfully", nil)
+}
+
+func (pc *ProductController) CheckAndCacheFilmExistence(c *gin.Context) {
+	filmId, err := strconv.Atoi(c.Param("film_id"))
+	if err != nil {
+		responses.FailureResponse(c, http.StatusBadRequest, fmt.Sprintf("invalid film id %s", c.Param("id")))
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+
+	status, err := pc.FilmService.CheckAndCacheFilmExistence(ctx, int32(filmId))
+	if err != nil {
+		responses.FailureResponse(c, status, err.Error())
+		return
+	}
+
+	responses.SuccessResponse(c, status, "checking and caching film exsistence perform successfully", nil)
 }
