@@ -196,8 +196,8 @@ func (f *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq)
 }
 
 // CheckAndCacheFilmExistence implements services.IFilm.
-func (f *filmService) CheckAndCacheFilmExistence(ctx context.Context, filmdId int32) (int, error) {
-	isExists, err := f.SqlStore.IsFilmExist(ctx, filmdId)
+func (f *filmService) CheckAndCacheFilmExistence(ctx context.Context, filmId int32) (int, error) {
+	isExists, err := f.SqlStore.IsFilmExist(ctx, filmId)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("an error occur when performing query: %v", err)
 	}
@@ -206,7 +206,26 @@ func (f *filmService) CheckAndCacheFilmExistence(ctx context.Context, filmdId in
 		return http.StatusNotFound, fmt.Errorf("film doesn't exist")
 	}
 
-	f.RedisClient.Save(fmt.Sprintf("%s%s", global.FILM, filmdId), true, thirty_days)
+	f.RedisClient.Save(fmt.Sprintf("%s%d", global.FILM, filmId), true, thirty_days)
 
 	return http.StatusOK, nil
+}
+
+// GetFilmById implements services.IFilm.
+func (f *filmService) GetFilmById(ctx context.Context, filmId int32) (interface{}, int, error) {
+	isExists, err := f.SqlStore.IsFilmExist(ctx, filmId)
+	if err != nil {
+		return nil, http.StatusInternalServerError, fmt.Errorf("an error occur when performing query: %v", err)
+	}
+
+	if !isExists {
+		return nil, http.StatusNotFound, fmt.Errorf("film doesn't exist")
+	}
+
+	film, err := f.SqlStore.GetFilmById(ctx, filmId)
+	if err != nil {
+		return nil, http.StatusInternalServerError, fmt.Errorf("error retrieving film with id %d: %w", filmId, err)
+	}
+
+	return film, 200, nil
 }

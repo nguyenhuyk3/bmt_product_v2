@@ -14,6 +14,7 @@ type Querier interface {
 	GetAllFilms(ctx context.Context) ([]GetAllFilmsRow, error)
 	GetFABById(ctx context.Context, id int32) (FoodAndBeverage, error)
 	GetFABImageURLByID(ctx context.Context, id int32) (pgtype.Text, error)
+	GetFilmById(ctx context.Context, id int32) (GetFilmByIdRow, error)
 	GetFilmByTitle(ctx context.Context, title string) (Films, error)
 	GetPosterUrlByFilmId(ctx context.Context, filmID int32) (pgtype.Text, error)
 	GetTrailerUrlByFilmId(ctx context.Context, filmID int32) (pgtype.Text, error)

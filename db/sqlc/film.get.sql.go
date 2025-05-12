@@ -67,6 +67,62 @@ func (q *Queries) GetAllFilms(ctx context.Context) ([]GetAllFilmsRow, error) {
 	return items, nil
 }
 
+const getFilmById = `-- name: GetFilmById :one
+SELECT 
+    f.id,
+    f.title,
+    f.description,
+    f.release_date,
+    f.duration,
+
+    ofi.status,
+    ofi.poster_url,
+    ofi.trailer_url,
+
+    ARRAY_AGG(DISTINCT fg.genre) AS genres
+
+FROM films AS f
+LEFT JOIN other_film_informations ofi ON ofi.film_id = f.id
+LEFT JOIN film_genres fg ON fg.film_id = f.id
+
+WHERE f.id = $1
+
+GROUP BY 
+    f.id,
+    ofi.status,
+    ofi.poster_url,
+    ofi.trailer_url
+`
+
+type GetFilmByIdRow struct {
+	ID          int32           `json:"id"`
+	Title       string          `json:"title"`
+	Description string          `json:"description"`
+	ReleaseDate pgtype.Date     `json:"release_date"`
+	Duration    pgtype.Interval `json:"duration"`
+	Status      NullStatuses    `json:"status"`
+	PosterUrl   pgtype.Text     `json:"poster_url"`
+	TrailerUrl  pgtype.Text     `json:"trailer_url"`
+	Genres      interface{}     `json:"genres"`
+}
+
+func (q *Queries) GetFilmById(ctx context.Context, id int32) (GetFilmByIdRow, error) {
+	row := q.db.QueryRow(ctx, getFilmById, id)
+	var i GetFilmByIdRow
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.ReleaseDate,
+		&i.Duration,
+		&i.Status,
+		&i.PosterUrl,
+		&i.TrailerUrl,
+		&i.Genres,
+	)
+	return i, err
+}
+
 const getFilmByTitle = `-- name: GetFilmByTitle :one
 SELECT id, title, description, release_date, duration
 FROM films

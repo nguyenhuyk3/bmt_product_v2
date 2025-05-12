@@ -30,3 +30,30 @@ WHERE film_id = $1;
 SELECT EXISTS (
     SELECT 1 FROM films WHERE id = $1
 ) AS EXISTS;
+
+-- name: GetFilmById :one
+SELECT 
+    f.id,
+    f.title,
+    f.description,
+    f.release_date,
+    f.duration,
+
+    ofi.status,
+    ofi.poster_url,
+    ofi.trailer_url,
+
+    ARRAY_AGG(DISTINCT fg.genre) AS genres
+
+FROM films AS f
+LEFT JOIN other_film_informations ofi ON ofi.film_id = f.id
+LEFT JOIN film_genres fg ON fg.film_id = f.id
+
+WHERE f.id = $1
+
+GROUP BY 
+    f.id,
+    ofi.status,
+    ofi.poster_url,
+    ofi.trailer_url;
+
