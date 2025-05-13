@@ -79,7 +79,7 @@ SELECT
     ofi.poster_url,
     ofi.trailer_url,
 
-    ARRAY_AGG(DISTINCT fg.genre) AS genres
+    ARRAY_AGG(DISTINCT fg.genre::text) AS genres
 
 FROM films AS f
 LEFT JOIN other_film_informations ofi ON ofi.film_id = f.id

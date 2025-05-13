@@ -271,5 +271,5 @@ func (pc ProductController) GetFilmById(c *gin.Context) {
 		return
 	}
 
-	responses.SuccessResponse(c, status, "checking and caching film exsistence perform successfully", film)
+	responses.SuccessResponse(c, status, "get film by id perform successfully", film)
 }

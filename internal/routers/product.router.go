@@ -28,7 +28,7 @@ func (pr *ProductRouter) InitProductRouter(router *gin.RouterGroup) {
 			adminFilmRouterPrivate.POST("/check_and_cache_film_existence/:film_id", productController.CheckAndCacheFilmExistence)
 		}
 
-		filmRouterPublic.POST("/get_film_by_id/:film_id", productController.GetFilmById)
+		filmRouterPublic.GET("/get_film_by_id/:film_id", productController.GetFilmById)
 	}
 
 	fabRouterPublic := router.Group("/fab")

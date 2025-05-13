@@ -40,9 +40,9 @@ func (f *filmService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int,
 		return http.StatusInternalServerError, err
 	}
 
-	go func() {
-		f.RedisClient.Save(fmt.Sprintf("%s%s", global.FILM, filmId), true, thirty_days)
-	}()
+	// go func() {
+	// 	f.RedisClient.Save(fmt.Sprintf("%s%s", global.FILM, filmId), true, thirty_days)
+	// }()
 
 	go func() {
 		err := f.UploadService.UploadProductImageToS3(request.UploadImageReq{
@@ -50,7 +50,7 @@ func (f *filmService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int,
 			Image:     arg.OtherFilmInformation.PosterFile,
 		}, global.FILM_TYPE)
 		if err != nil {
-			log.Printf("an error occurr when updating film poster to S3 (add): %v", err)
+			log.Printf("an error occur when updating film poster to S3 (add): %v", err)
 		} else {
 			log.Printf("upload film poster to S3 successfully")
 		}
@@ -62,9 +62,17 @@ func (f *filmService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int,
 			Video:     arg.OtherFilmInformation.TrailerFile,
 		})
 		if err != nil {
-			log.Printf("an error occurr when updating film trailer to S3 (add): %v", err)
+			log.Printf("an error occur when updating film trailer to S3 (add): %v", err)
 		} else {
 			log.Printf("upload film trailer to S3 successfully")
+		}
+	}()
+
+	go func() {
+		filmIdInt, _ := strconv.Atoi(filmId)
+		err := f.getFilmByIdAndCache(int32(filmIdInt))
+		if err != nil {
+			log.Println(err.Error())
 		}
 	}()
 
@@ -206,7 +214,15 @@ func (f *filmService) CheckAndCacheFilmExistence(ctx context.Context, filmId int
 		return http.StatusNotFound, fmt.Errorf("film doesn't exist")
 	}
 
-	f.RedisClient.Save(fmt.Sprintf("%s%d", global.FILM, filmId), true, thirty_days)
+	film, err := f.SqlStore.GetFilmById(ctx, filmId)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("error retrieving film with id %d: %w", filmId, err)
+	}
+
+	err = f.RedisClient.Save(fmt.Sprintf("%s%s", global.FILM, strconv.Itoa(int(filmId))), film, thirty_days)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("an error occur when saving fiilm to redis: %v", err)
+	}
 
 	return http.StatusOK, nil
 }
@@ -223,9 +239,11 @@ func (f *filmService) GetFilmById(ctx context.Context, filmId int32) (interface{
 	}
 
 	film, err := f.SqlStore.GetFilmById(ctx, filmId)
+	fmt.Println(film)
+
 	if err != nil {
 		return nil, http.StatusInternalServerError, fmt.Errorf("error retrieving film with id %d: %w", filmId, err)
 	}
 
-	return film, 200, nil
+	return film, http.StatusOK, nil
 }
