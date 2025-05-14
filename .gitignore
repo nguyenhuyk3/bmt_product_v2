@@ -1,3 +1,5 @@
 app.env
 
 local.yaml
+
+./scripts

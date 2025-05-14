@@ -22,8 +22,10 @@ func (pr *ProductRouter) InitProductRouter(router *gin.RouterGroup) {
 	{
 		adminFilmRouterPrivate := filmRouterPublic.Group("/admin")
 		{
-			adminFilmRouterPrivate.POST("/add", getFromHeaderMiddleware.GetEmailFromHeader(), productController.AddFilm)
-			adminFilmRouterPrivate.PUT("/update", getFromHeaderMiddleware.GetEmailFromHeader(), productController.UpdateFilm)
+			adminFilmRouterPrivate.POST("/add",
+				getFromHeaderMiddleware.GetEmailFromHeader(), productController.AddFilm)
+			adminFilmRouterPrivate.PUT("/update",
+				getFromHeaderMiddleware.GetEmailFromHeader(), productController.UpdateFilm)
 			adminFilmRouterPrivate.GET("/get_all_films", productController.GetAllFilms)
 			adminFilmRouterPrivate.POST("/check_and_cache_film_existence/:film_id", productController.CheckAndCacheFilmExistence)
 		}

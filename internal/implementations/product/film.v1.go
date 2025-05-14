@@ -2,6 +2,7 @@ package product
 
 import (
 	"bmt_product_service/db/sqlc"
+	"bmt_product_service/dto/messages"
 	"bmt_product_service/dto/request"
 	"bmt_product_service/global"
 	"bmt_product_service/internal/services"
@@ -16,12 +17,14 @@ type filmService struct {
 	UploadService services.IUpload
 	SqlStore      sqlc.IStore
 	RedisClient   services.IRedis
+	Writer        services.IMessageBrokerWriter
 }
 
 func NewFilmService(
 	uploadService services.IUpload,
 	sqlStore sqlc.IStore,
-	redisClient services.IRedis) services.IFilm {
+	redisClient services.IRedis,
+	writer services.IMessageBrokerWriter) services.IFilm {
 	return &filmService{
 		UploadService: uploadService,
 		SqlStore:      sqlStore,
@@ -68,13 +71,24 @@ func (f *filmService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int,
 		}
 	}()
 
-	go func() {
-		filmIdInt, _ := strconv.Atoi(filmId)
-		err := f.getFilmByIdAndCache(int32(filmIdInt))
-		if err != nil {
-			log.Println(err.Error())
-		}
-	}()
+	// go func() {
+	// 	filmIdInt, _ := strconv.Atoi(filmId)
+	// 	err := f.getFilmByIdAndCache(int32(filmIdInt))
+	// 	if err != nil {
+	// 		log.Println(err.Error())
+	// 	}
+	// }()
+
+	filmIdInt, _ := strconv.Atoi(filmId)
+	err = f.Writer.SendMessage(
+		context.Background(),
+		global.NEW_FILM_WAS_CREATED_TOPIC,
+		filmId, messages.NewFilmCreationTopic{
+			FilmId: int32(filmIdInt),
+		})
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("an error occur when sending message to kafka: %w", err)
+	}
 
 	return http.StatusOK, nil
 }

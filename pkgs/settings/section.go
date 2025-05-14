@@ -13,7 +13,8 @@ type serviceSetting struct {
 }
 
 type serverSetting struct {
-	ServerPort string `mapstructure:"SERVER_PORT"`
+	ServerPort    string `mapstructure:"SERVER_PORT"`
+	XInternalCall string `mapstructure:"X_INTERNAL_CALL"`
 }
 
 type postgreSetting struct {

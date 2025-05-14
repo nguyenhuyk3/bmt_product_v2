@@ -4,4 +4,4 @@ type RouterGroup struct {
 	Product ProductRouter
 }
 
-var UserServiceRouterGroup = new(RouterGroup)
+var ProductServiceRouterGroup = new(RouterGroup)

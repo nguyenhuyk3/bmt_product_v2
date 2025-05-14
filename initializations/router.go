@@ -9,7 +9,7 @@ import (
 func initRouter() *gin.Engine {
 	r := gin.Default()
 	// Routers
-	productRouter := routers.UserServiceRouterGroup.Product
+	productRouter := routers.ProductServiceRouterGroup.Product
 
 	mainGroup := r.Group("/v1")
 	{

@@ -237,6 +237,12 @@ func (pc *ProductController) DeleteFAB(c *gin.Context) {
 }
 
 func (pc *ProductController) CheckAndCacheFilmExistence(c *gin.Context) {
+	isInternal := c.GetHeader("X-Internal-Service")
+	if isInternal != global.Config.Server.XInternalCall {
+		responses.FailureResponse(c, http.StatusUnauthorized, "request not authorized")
+		return
+	}
+
 	filmId, err := strconv.Atoi(c.Param("film_id"))
 	if err != nil {
 		responses.FailureResponse(c, http.StatusBadRequest, fmt.Sprintf("invalid film id %s", c.Param("id")))
