@@ -40,29 +40,17 @@ func (s *SqlStore) execTran(ctx context.Context, fn func(*Queries) error) error 
 	return tran.Commit(ctx)
 }
 
-func parseDurationToPGInterval(durationStr string) (pgtype.Interval, error) {
-	duration, err := time.ParseDuration(durationStr)
-	if err != nil {
-		return pgtype.Interval{}, fmt.Errorf("invalid duration format: %v", err)
-	}
-
-	return pgtype.Interval{
-		Microseconds: duration.Microseconds(),
-		Valid:        true,
-	}, nil
-}
-
 // InsertFilmTran implements IStore.
 func (s *SqlStore) InsertFilmTran(ctx context.Context, arg request.AddFilmReq) (string, error) {
 	var filmId int32 = -1
 
 	err := s.execTran(ctx, func(q *Queries) error {
-		interval, err := parseDurationToPGInterval(arg.FilmInformation.Duration)
+		interval, err := convertors.ParseDurationToPGInterval(arg.FilmInformation.Duration)
 		if err != nil {
 			return err
 		}
 
-		releaseDate, err := convertors.GetReleaseDateAsTime(arg.FilmInformation.ReleaseDate)
+		releaseDate, err := convertors.ConvertDateStringToTime(arg.FilmInformation.ReleaseDate)
 		if err != nil {
 			return err
 		}
@@ -153,12 +141,12 @@ func (s *SqlStore) InsertFilmTran(ctx context.Context, arg request.AddFilmReq) (
 // UpdateFilmTran implements IStore.
 func (s *SqlStore) UpdateFilmTran(ctx context.Context, arg request.UpdateFilmReq) error {
 	err := s.execTran(ctx, func(q *Queries) error {
-		interval, err := parseDurationToPGInterval(arg.FilmInformation.Duration)
+		interval, err := convertors.ParseDurationToPGInterval(arg.FilmInformation.Duration)
 		if err != nil {
 			return err
 		}
 
-		releaseDate, err := convertors.GetReleaseDateAsTime(arg.FilmInformation.ReleaseDate)
+		releaseDate, err := convertors.ConvertDateStringToTime(arg.FilmInformation.ReleaseDate)
 		if err != nil {
 			return err
 		}

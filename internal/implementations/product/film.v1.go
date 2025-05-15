@@ -71,20 +71,21 @@ func (f *filmService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int,
 		}
 	}()
 
-	// go func() {
-	// 	filmIdInt, _ := strconv.Atoi(filmId)
-	// 	err := f.getFilmByIdAndCache(int32(filmIdInt))
-	// 	if err != nil {
-	// 		log.Println(err.Error())
-	// 	}
-	// }()
-
 	filmIdInt, _ := strconv.Atoi(filmId)
+
+	go func() {
+		err := f.getFilmByIdAndCache(int32(filmIdInt))
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}()
+
 	err = f.Writer.SendMessage(
 		context.Background(),
 		global.NEW_FILM_WAS_CREATED_TOPIC,
 		filmId, messages.NewFilmCreationTopic{
-			FilmId: int32(filmIdInt),
+			FilmId:   int32(filmIdInt),
+			Duration: arg.FilmInformation.Duration,
 		})
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("an error occur when sending message to kafka: %w", err)
