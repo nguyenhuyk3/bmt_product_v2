@@ -2,7 +2,6 @@ package product
 
 import (
 	"bmt_product_service/db/sqlc"
-	"bmt_product_service/dto/messages"
 	"bmt_product_service/dto/request"
 	"bmt_product_service/global"
 	"bmt_product_service/internal/services"
@@ -43,10 +42,6 @@ func (f *filmService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int,
 		return http.StatusInternalServerError, err
 	}
 
-	// go func() {
-	// 	f.RedisClient.Save(fmt.Sprintf("%s%s", global.FILM, filmId), true, thirty_days)
-	// }()
-
 	go func() {
 		err := f.UploadService.UploadProductImageToS3(request.UploadImageReq{
 			ProductId: filmId,
@@ -71,25 +66,23 @@ func (f *filmService) AddFilm(ctx context.Context, arg request.AddFilmReq) (int,
 		}
 	}()
 
-	filmIdInt, _ := strconv.Atoi(filmId)
-
 	go func() {
-		err := f.getFilmByIdAndCache(int32(filmIdInt))
+		err := f.getFilmByIdAndCache(filmId)
 		if err != nil {
 			log.Println(err.Error())
 		}
 	}()
 
-	err = f.Writer.SendMessage(
-		context.Background(),
-		global.NEW_FILM_WAS_CREATED_TOPIC,
-		filmId, messages.NewFilmCreationTopic{
-			FilmId:   int32(filmIdInt),
-			Duration: arg.FilmInformation.Duration,
-		})
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("an error occur when sending message to kafka: %w", err)
-	}
+	// err = f.Writer.SendMessage(
+	// 	context.Background(),
+	// 	global.NEW_FILM_WAS_CREATED_TOPIC,
+	// 	filmId, messages.NewFilmCreationTopic{
+	// 		FilmId:   filmId,
+	// 		Duration: arg.FilmInformation.Duration,
+	// 	})
+	// if err != nil {
+	// 	return http.StatusInternalServerError, fmt.Errorf("an error occur when sending message to kafka: %w", err)
+	// }
 
 	return http.StatusOK, nil
 }
@@ -122,12 +115,7 @@ func (f *filmService) GetAllFilms(ctx context.Context) (int, interface{}, error)
 
 // UpdateFilm implements services.IFilm.
 func (f *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq) (int, error) {
-	filmId, err := strconv.Atoi(arg.FilmId)
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("invalid film id (%s): %v", arg.FilmId, err)
-	}
-
-	isExist, err := f.SqlStore.IsFilmExist(ctx, int32(filmId))
+	isExist, err := f.SqlStore.IsFilmExist(ctx, arg.FilmId)
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("an error occur when querying database: %v", err)
 	}
@@ -144,15 +132,9 @@ func (f *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq)
 			if err != nil {
 				log.Printf("an error occurr when updating film poster to S3 (update): %v", err)
 			} else {
-				filmId, err := strconv.Atoi(arg.FilmId)
+				objectKey, err := f.SqlStore.GetPosterUrlByFilmId(context.Background(), arg.FilmId)
 				if err != nil {
-					log.Printf("invalid film ID: %v\n", err)
-					return
-				}
-
-				objectKey, err := f.SqlStore.GetPosterUrlByFilmId(context.Background(), int32(filmId))
-				if err != nil {
-					log.Printf("failed to get poster URL: %d %v\n", filmId, err)
+					log.Printf("failed to get poster URL: %d %v\n", arg.FilmId, err)
 					return
 				}
 
@@ -182,15 +164,10 @@ func (f *filmService) UpdateFilm(ctx context.Context, arg request.UpdateFilmReq)
 			if err != nil {
 				log.Printf("an error occurr when updating film trailer to S3 (update): %v", err)
 			} else {
-				filmId, err := strconv.Atoi(arg.FilmId)
-				if err != nil {
-					log.Printf("invalid film ID: %v\n", err)
-					return
-				}
 
-				objectKey, err := f.SqlStore.GetTrailerUrlByFilmId(context.Background(), int32(filmId))
+				objectKey, err := f.SqlStore.GetTrailerUrlByFilmId(context.Background(), arg.FilmId)
 				if err != nil {
-					log.Printf("failed to get trailer URL: %d %v\n", filmId, err)
+					log.Printf("failed to get trailer URL: %d %v\n", arg.FilmId, err)
 					return
 				}
 

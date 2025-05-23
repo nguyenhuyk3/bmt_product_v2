@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -74,7 +75,7 @@ func (us *UploadService) UploadProductImageToS3(message request.UploadImageReq, 
 		ext = ".jpg"
 	}
 
-	newFileName := message.ProductId + "-" + uuid.New().String() + ext
+	newFileName := strconv.Itoa(int(message.ProductId)) + "-" + uuid.New().String() + ext
 	objectKey := ""
 
 	switch productType {
@@ -119,7 +120,7 @@ func (us *UploadService) UploadFilmVideoToS3(message request.UploadVideoReq) err
 		contentType = http.DetectContentType(fileBytes)
 	}
 
-	newFileName := message.ProductId + "-" + uuid.New().String() + ext
+	newFileName := strconv.Itoa(int(message.ProductId)) + "-" + uuid.New().String() + ext
 	objectKey := film_video_base_key + newFileName
 
 	_, err = us.S3Client.PutObject(&s3.PutObjectInput{

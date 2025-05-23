@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -43,7 +42,7 @@ func (f *fABService) AddFAB(ctx context.Context, arg request.AddFABReq) (int, er
 
 	go func() {
 		err := f.UploadService.UploadProductImageToS3(request.UploadImageReq{
-			ProductId: strconv.Itoa(int(fABId)),
+			ProductId: fABId,
 			Image:     arg.Image,
 		}, global.FAB_TYPE)
 		if err != nil {
@@ -83,7 +82,7 @@ func (f *fABService) UpdateFAB(ctx context.Context, arg request.UpdateFABReq) (i
 	if arg.Image != nil {
 		go func() {
 			err := f.UploadService.UploadProductImageToS3(request.UploadImageReq{
-				ProductId: strconv.Itoa(int(arg.FABId)),
+				ProductId: arg.FABId,
 				Image:     arg.Image,
 			}, global.FAB_TYPE)
 			if err != nil {

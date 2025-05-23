@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	CreateOutbox(ctx context.Context, arg CreateOutboxParams) error
 	GetAllFilms(ctx context.Context) ([]GetAllFilmsRow, error)
 	GetFABById(ctx context.Context, id int32) (FoodsAndBeverage, error)
 	GetFABImageURLByID(ctx context.Context, id int32) (pgtype.Text, error)

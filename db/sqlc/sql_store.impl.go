@@ -2,13 +2,15 @@ package sqlc
 
 import (
 	"bmt_product_service/dto/request"
+	"bmt_product_service/global"
 	"bmt_product_service/utils/convertors"
-	"strconv"
+	"encoding/json"
 
 	"context"
 	"fmt"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -41,7 +43,7 @@ func (s *SqlStore) execTran(ctx context.Context, fn func(*Queries) error) error 
 }
 
 // InsertFilmTran implements IStore.
-func (s *SqlStore) InsertFilmTran(ctx context.Context, arg request.AddFilmReq) (string, error) {
+func (s *SqlStore) InsertFilmTran(ctx context.Context, arg request.AddFilmReq) (int32, error) {
 	var filmId int32 = -1
 
 	err := s.execTran(ctx, func(q *Queries) error {
@@ -65,7 +67,7 @@ func (s *SqlStore) InsertFilmTran(ctx context.Context, arg request.AddFilmReq) (
 			Duration: interval,
 		})
 		if err != nil {
-			return fmt.Errorf("failed to insert film: %v", err)
+			return fmt.Errorf("failed to insert film: %w", err)
 		}
 
 		err = q.insertFilmChange(ctx, insertFilmChangeParams{
@@ -81,14 +83,14 @@ func (s *SqlStore) InsertFilmTran(ctx context.Context, arg request.AddFilmReq) (
 			},
 		})
 		if err != nil {
-			return fmt.Errorf("failed to insert film change: %v", err)
+			return fmt.Errorf("failed to insert film change: %w", err)
 		}
 
 		for _, genre := range arg.FilmInformation.Genres {
 			var tmpGenre NullGenres
 			err := tmpGenre.Scan(genre)
 			if err != nil {
-				return fmt.Errorf("failed to scan role: %v", err)
+				return fmt.Errorf("failed to scan role: %w", err)
 			}
 
 			err = q.insertFilmGenre(ctx, insertFilmGenreParams{
@@ -99,7 +101,7 @@ func (s *SqlStore) InsertFilmTran(ctx context.Context, arg request.AddFilmReq) (
 				},
 			})
 			if err != nil {
-				return fmt.Errorf("failed to insert genre %s: %v", genre, err)
+				return fmt.Errorf("failed to insert genre %s: %w", genre, err)
 			}
 		}
 
@@ -124,7 +126,26 @@ func (s *SqlStore) InsertFilmTran(ctx context.Context, arg request.AddFilmReq) (
 			},
 		})
 		if err != nil {
-			return fmt.Errorf("failed to insert other film information: %v", err)
+			return fmt.Errorf("failed to insert other film information: %w", err)
+		}
+
+		payloadBytes, err := json.Marshal(gin.H{
+			"film_id":  filmId,
+			"duration": arg.FilmInformation.Duration,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to marshal payload: %w", err)
+		}
+
+		err = q.CreateOutbox(ctx,
+			CreateOutboxParams{
+				AggregatedType: "PRODUCT_FILM_ID",
+				AggregatedID:   filmId,
+				EventType:      global.FILM_CREATED,
+				Payload:        payloadBytes,
+			})
+		if err != nil {
+			return fmt.Errorf("failed to create out box: %w", err)
 		}
 
 		return nil
@@ -132,10 +153,10 @@ func (s *SqlStore) InsertFilmTran(ctx context.Context, arg request.AddFilmReq) (
 
 	if err != nil {
 		// If the transaction failed, return the error
-		return "", fmt.Errorf("transaction failed: %v", err)
+		return -1, fmt.Errorf("transaction failed: %w", err)
 	}
 
-	return strconv.Itoa(int(filmId)), nil
+	return filmId, nil
 }
 
 // UpdateFilmTran implements IStore.
@@ -151,14 +172,11 @@ func (s *SqlStore) UpdateFilmTran(ctx context.Context, arg request.UpdateFilmReq
 			return err
 		}
 
-		filmId, err := strconv.Atoi(arg.FilmId)
-		if err != nil {
-			return fmt.Errorf("invalid filmId '%s': %v", arg.FilmId, err)
-		}
-
-		err = s.deleteAllFilmGenresByFilmID(ctx, pgtype.Int4{
-			Int32: int32(filmId), Valid: true,
-		})
+		err = s.deleteAllFilmGenresByFilmID(ctx,
+			pgtype.Int4{
+				Int32: arg.FilmId,
+				Valid: true,
+			})
 		if err != nil {
 			return fmt.Errorf("failed to delete existing genres: %v", err)
 		}
@@ -172,7 +190,7 @@ func (s *SqlStore) UpdateFilmTran(ctx context.Context, arg request.UpdateFilmReq
 
 			err = q.insertFilmGenre(ctx, insertFilmGenreParams{
 				FilmID: pgtype.Int4{
-					Int32: int32(filmId),
+					Int32: arg.FilmId,
 					Valid: true,
 				},
 				Genre: NullGenres{
@@ -186,7 +204,7 @@ func (s *SqlStore) UpdateFilmTran(ctx context.Context, arg request.UpdateFilmReq
 		}
 
 		err = s.updateFilm(ctx, updateFilmParams{
-			ID:          int32(filmId),
+			ID:          arg.FilmId,
 			Title:       arg.FilmInformation.Title,
 			Description: arg.FilmInformation.Description,
 			ReleaseDate: pgtype.Date{
@@ -200,7 +218,7 @@ func (s *SqlStore) UpdateFilmTran(ctx context.Context, arg request.UpdateFilmReq
 		}
 
 		err = s.updateFilmChange(ctx, updateFilmChangeParams{
-			FilmID:    int32(filmId),
+			FilmID:    arg.FilmId,
 			ChangedBy: arg.ChangedBy,
 			UpdatedAt: pgtype.Timestamp{
 				Time: time.Now(), Valid: true,

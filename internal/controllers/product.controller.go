@@ -108,8 +108,14 @@ func (pc *ProductController) UpdateFilm(c *gin.Context) {
 		return
 	}
 
+	filmIdInt, err := strconv.Atoi(filmId)
+	if err != nil {
+		responses.FailureResponse(c, http.StatusBadRequest, fmt.Sprintf("invalid film id (%s)", filmId))
+		return
+	}
+
 	req := request.UpdateFilmReq{
-		FilmId: filmId,
+		FilmId: int32(filmIdInt),
 		FilmInformation: request.FilmInformation{
 			Title:       title,
 			Description: description,

@@ -7,6 +7,6 @@ import (
 
 type IStore interface {
 	Querier
-	InsertFilmTran(ctx context.Context, arg request.AddFilmReq) (string, error)
+	InsertFilmTran(ctx context.Context, arg request.AddFilmReq) (int32, error)
 	UpdateFilmTran(ctx context.Context, arg request.UpdateFilmReq) error
 }

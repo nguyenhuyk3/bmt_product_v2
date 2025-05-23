@@ -29,23 +29,23 @@ type AddFilmReq struct {
 }
 
 type UpdateFilmReq struct {
-	FilmId               string          `json:"film_id" binding:"required"`
+	FilmId               int32           `json:"film_id" binding:"required"`
 	FilmInformation      FilmInformation `json:"film_information" binding:"required"`
 	ChangedBy            string
 	OtherFilmInformation OtherFilmInformation
 }
 
 type GetFilmByIdReq struct {
-	FilmId int `json:"film_id" binding:"required"`
+	FilmId int32 `json:"film_id" binding:"required"`
 }
 
 type UploadImageReq struct {
-	ProductId string
+	ProductId int32
 	Image     *multipart.FileHeader
 }
 
 type UploadVideoReq struct {
-	ProductId string
+	ProductId int32
 	Video     *multipart.FileHeader
 }
 
