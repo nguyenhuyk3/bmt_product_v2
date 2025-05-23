@@ -16,30 +16,38 @@ func (pr *ProductRouter) InitProductRouter(router *gin.RouterGroup) {
 		log.Fatalf("failed to initialize ProductController: %v", err)
 		return
 	}
+
 	getFromHeaderMiddleware := middlewares.NewGetFromHeaderMiddleware()
 
-	filmRouterPublic := router.Group("/film")
+	filmRouter := router.Group("/film")
 	{
-		adminFilmRouterPrivate := filmRouterPublic.Group("/admin")
+		adminFilmRouterPrivate := filmRouter.Group("/admin")
 		{
 			adminFilmRouterPrivate.POST("/add",
-				getFromHeaderMiddleware.GetEmailFromHeader(), productController.AddFilm)
+				getFromHeaderMiddleware.GetEmailFromHeader(),
+				productController.AddFilm)
 			adminFilmRouterPrivate.PUT("/update",
-				getFromHeaderMiddleware.GetEmailFromHeader(), productController.UpdateFilm)
-			adminFilmRouterPrivate.GET("/get_all_films", productController.GetAllFilms)
-			adminFilmRouterPrivate.POST("/check_and_cache_film_existence/:film_id", productController.CheckAndCacheFilmExistence)
+				getFromHeaderMiddleware.GetEmailFromHeader(),
+				productController.UpdateFilm)
+			adminFilmRouterPrivate.GET("/get_all_films",
+				productController.GetAllFilms)
+			adminFilmRouterPrivate.POST("/check_and_cache_film_existence/:film_id",
+				productController.CheckAndCacheFilmExistence)
 		}
 
-		filmRouterPublic.GET("/get_film_by_id/:film_id", productController.GetFilmById)
+		publicFilmRouter := filmRouter.Group("/public")
+		{
+			publicFilmRouter.GET("/get_film_by_id/:film_id", productController.GetFilmById)
+		}
 	}
 
-	fabRouterPublic := router.Group("/fab")
+	fabRouter := router.Group("/fab")
 	{
-		adminFABRouterPrivate := fabRouterPublic.Group("/admin")
+		adminFABRouterPrivate := fabRouter.Group("/admin")
 		{
 			adminFABRouterPrivate.POST("/add", productController.AddFAB)
 			adminFABRouterPrivate.PUT("/update", productController.UpdateFAB)
-			adminFABRouterPrivate.POST("/delete/:id", productController.DeleteFAB)
+			adminFABRouterPrivate.POST("/delete", productController.DeleteFAB)
 		}
 	}
 }

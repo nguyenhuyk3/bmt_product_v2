@@ -12,7 +12,7 @@ import (
 )
 
 const updateFAB = `-- name: UpdateFAB :exec
-UPDATE food_and_beverage
+UPDATE foods_and_beverages
 SET name = $2,
     type = $3,
     price = $4,
@@ -38,7 +38,7 @@ func (q *Queries) UpdateFAB(ctx context.Context, arg UpdateFABParams) error {
 }
 
 const updateFABImageURL = `-- name: UpdateFABImageURL :exec
-UPDATE food_and_beverage
+UPDATE foods_and_beverages
 SET image_url = $1,
     updated_at = NOW()
 WHERE id = $2

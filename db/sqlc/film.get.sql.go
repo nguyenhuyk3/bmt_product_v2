@@ -129,9 +129,9 @@ FROM films
 WHERE title = $1
 `
 
-func (q *Queries) GetFilmByTitle(ctx context.Context, title string) (Films, error) {
+func (q *Queries) GetFilmByTitle(ctx context.Context, title string) (Film, error) {
 	row := q.db.QueryRow(ctx, getFilmByTitle, title)
-	var i Films
+	var i Film
 	err := row.Scan(
 		&i.ID,
 		&i.Title,

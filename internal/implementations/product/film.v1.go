@@ -108,7 +108,7 @@ func (f *filmService) GetAllFilms(ctx context.Context) (int, interface{}, error)
 
 			savingErr := f.RedisClient.Save(global.GET_ALL_FILMS_WITH_ADMIN_ROLE, &films, 60*24*10)
 			if savingErr != nil {
-				return http.StatusOK, nil, fmt.Errorf("warning: failed to save to Redis: %v", savingErr)
+				return http.StatusInternalServerError, nil, fmt.Errorf("warning: failed to save to Redis: %v", savingErr)
 			}
 
 			return http.StatusOK, films, nil

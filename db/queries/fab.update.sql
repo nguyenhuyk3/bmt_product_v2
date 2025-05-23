@@ -1,5 +1,5 @@
 -- name: UpdateFAB :exec
-UPDATE food_and_beverage
+UPDATE foods_and_beverages
 SET name = $2,
     type = $3,
     price = $4,
@@ -7,7 +7,7 @@ SET name = $2,
 WHERE id = $1 AND is_deleted = false;
 
 -- name: UpdateFABImageURL :exec
-UPDATE food_and_beverage
+UPDATE foods_and_beverages
 SET image_url = $1,
     updated_at = NOW()
 WHERE id = $2;

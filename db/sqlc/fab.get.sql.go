@@ -12,13 +12,13 @@ import (
 )
 
 const getFABById = `-- name: GetFABById :one
-SELECT id, name, type, image_url, price, is_deleted, created_at, updated_at FROM food_and_beverage
+SELECT id, name, type, image_url, price, is_deleted, created_at, updated_at FROM foods_and_beverages
 WHERE id = $1
 `
 
-func (q *Queries) GetFABById(ctx context.Context, id int32) (FoodAndBeverage, error) {
+func (q *Queries) GetFABById(ctx context.Context, id int32) (FoodsAndBeverage, error) {
 	row := q.db.QueryRow(ctx, getFABById, id)
-	var i FoodAndBeverage
+	var i FoodsAndBeverage
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
@@ -34,7 +34,7 @@ func (q *Queries) GetFABById(ctx context.Context, id int32) (FoodAndBeverage, er
 
 const getFABImageURLByID = `-- name: GetFABImageURLByID :one
 SELECT image_url
-FROM food_and_beverage
+FROM foods_and_beverages
 WHERE id = $1
 `
 
@@ -47,7 +47,7 @@ func (q *Queries) GetFABImageURLByID(ctx context.Context, id int32) (pgtype.Text
 
 const isFABExist = `-- name: IsFABExist :one
 SELECT EXISTS (
-    SELECT 1 FROM food_and_beverage WHERE id = $1
+    SELECT 1 FROM foods_and_beverages WHERE id = $1
 ) AS EXISTS
 `
 
@@ -59,19 +59,19 @@ func (q *Queries) IsFABExist(ctx context.Context, id int32) (bool, error) {
 }
 
 const listFAB = `-- name: ListFAB :many
-SELECT id, name, type, image_url, price, is_deleted, created_at, updated_at FROM food_and_beverage
+SELECT id, name, type, image_url, price, is_deleted, created_at, updated_at FROM foods_and_beverages
 ORDER BY created_at DESC
 `
 
-func (q *Queries) ListFAB(ctx context.Context) ([]FoodAndBeverage, error) {
+func (q *Queries) ListFAB(ctx context.Context) ([]FoodsAndBeverage, error) {
 	rows, err := q.db.Query(ctx, listFAB)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []FoodAndBeverage{}
+	items := []FoodsAndBeverage{}
 	for rows.Next() {
-		var i FoodAndBeverage
+		var i FoodsAndBeverage
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,

@@ -203,19 +203,14 @@ func (ns NullStatuses) Value() (driver.Value, error) {
 	return string(ns.Statuses), nil
 }
 
-type FillmChanges struct {
+type FillmChange struct {
 	FilmID    int32            `json:"film_id"`
 	ChangedBy string           `json:"changed_by"`
 	CreatedAt pgtype.Timestamp `json:"created_at"`
 	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 }
 
-type FilmGenres struct {
-	FilmID pgtype.Int4 `json:"film_id"`
-	Genre  NullGenres  `json:"genre"`
-}
-
-type Films struct {
+type Film struct {
 	ID          int32           `json:"id"`
 	Title       string          `json:"title"`
 	Description string          `json:"description"`
@@ -223,7 +218,12 @@ type Films struct {
 	Duration    pgtype.Interval `json:"duration"`
 }
 
-type FoodAndBeverage struct {
+type FilmGenre struct {
+	FilmID pgtype.Int4 `json:"film_id"`
+	Genre  NullGenres  `json:"genre"`
+}
+
+type FoodsAndBeverage struct {
 	ID        int32            `json:"id"`
 	Name      string           `json:"name"`
 	Type      FabTypes         `json:"type"`
@@ -234,9 +234,18 @@ type FoodAndBeverage struct {
 	UpdatedAt pgtype.Timestamp `json:"updated_at"`
 }
 
-type OtherFilmInformations struct {
+type OtherFilmInformation struct {
 	FilmID     int32        `json:"film_id"`
 	Status     NullStatuses `json:"status"`
 	PosterUrl  pgtype.Text  `json:"poster_url"`
 	TrailerUrl pgtype.Text  `json:"trailer_url"`
+}
+
+type Outbox struct {
+	ID             pgtype.UUID      `json:"id"`
+	AggregatedType string           `json:"aggregated_type"`
+	AggregatedID   int32            `json:"aggregated_id"`
+	EventType      string           `json:"event_type"`
+	Payload        []byte           `json:"payload"`
+	CreatedAt      pgtype.Timestamp `json:"created_at"`
 }

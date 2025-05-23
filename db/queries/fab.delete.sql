@@ -1,5 +1,5 @@
 -- name: ToggleFABDelete :exec
-UPDATE food_and_beverage
+UPDATE foods_and_beverages
 SET is_deleted = NOT is_deleted,
     updated_at = NOW()
 WHERE id = $1;

@@ -63,3 +63,7 @@ type UpdateFABReq struct {
 	Image *multipart.FileHeader
 	Price int
 }
+
+type DeleteFABReq struct {
+	FABId int32 `json:"fab_id" binding:"required"`
+}

@@ -12,16 +12,16 @@ import (
 
 type Querier interface {
 	GetAllFilms(ctx context.Context) ([]GetAllFilmsRow, error)
-	GetFABById(ctx context.Context, id int32) (FoodAndBeverage, error)
+	GetFABById(ctx context.Context, id int32) (FoodsAndBeverage, error)
 	GetFABImageURLByID(ctx context.Context, id int32) (pgtype.Text, error)
 	GetFilmById(ctx context.Context, id int32) (GetFilmByIdRow, error)
-	GetFilmByTitle(ctx context.Context, title string) (Films, error)
+	GetFilmByTitle(ctx context.Context, title string) (Film, error)
 	GetPosterUrlByFilmId(ctx context.Context, filmID int32) (pgtype.Text, error)
 	GetTrailerUrlByFilmId(ctx context.Context, filmID int32) (pgtype.Text, error)
 	InsertFAB(ctx context.Context, arg InsertFABParams) (int32, error)
 	IsFABExist(ctx context.Context, id int32) (bool, error)
 	IsFilmExist(ctx context.Context, id int32) (bool, error)
-	ListFAB(ctx context.Context) ([]FoodAndBeverage, error)
+	ListFAB(ctx context.Context) ([]FoodsAndBeverage, error)
 	ToggleFABDelete(ctx context.Context, id int32) error
 	UpdateFAB(ctx context.Context, arg UpdateFABParams) error
 	UpdateFABImageURL(ctx context.Context, arg UpdateFABImageURLParams) error
