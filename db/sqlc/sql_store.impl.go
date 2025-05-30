@@ -2,16 +2,13 @@ package sqlc
 
 import (
 	"bmt_product_service/dto/request"
-	"bmt_product_service/global"
 	"bmt_product_service/utils/convertors"
-	"encoding/json"
 	"net/http"
 
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -130,24 +127,24 @@ func (s *SqlStore) InsertFilmTran(ctx context.Context, arg request.AddFilmReq) (
 			return fmt.Errorf("failed to insert other film information: %w", err)
 		}
 
-		payloadBytes, err := json.Marshal(gin.H{
-			"film_id":  filmId,
-			"duration": arg.FilmInformation.Duration,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to marshal payload: %w", err)
-		}
+		// payloadBytes, err := json.Marshal(gin.H{
+		// 	"film_id":  filmId,
+		// 	"duration": arg.FilmInformation.Duration,
+		// })
+		// if err != nil {
+		// 	return fmt.Errorf("failed to marshal payload: %w", err)
+		// }
 
-		err = q.CreateOutbox(ctx,
-			CreateOutboxParams{
-				AggregatedType: "PRODUCT_FILM_ID",
-				AggregatedID:   filmId,
-				EventType:      global.FILM_CREATED,
-				Payload:        payloadBytes,
-			})
-		if err != nil {
-			return fmt.Errorf("failed to create out box: %w", err)
-		}
+		// err = q.CreateOutbox(ctx,
+		// 	CreateOutboxParams{
+		// 		AggregatedType: "PRODUCT_FILM_ID",
+		// 		AggregatedID:   filmId,
+		// 		EventType:      global.FILM_CREATED,
+		// 		Payload:        payloadBytes,
+		// 	})
+		// if err != nil {
+		// 	return fmt.Errorf("failed to create out box: %w", err)
+		// }
 
 		return nil
 	})
@@ -273,24 +270,24 @@ func (s *SqlStore) InsertFABTran(ctx context.Context, arg request.AddFABReq) (in
 
 		fABId = fABIdFromQuery
 
-		payloadBytes, err := json.Marshal(gin.H{
-			"fab_id": fABId,
-			"price":  arg.Price,
-		})
-		if err != nil {
-			return fmt.Errorf("failed to update film change: %v", err)
-		}
+		// payloadBytes, err := json.Marshal(gin.H{
+		// 	"fab_id": fABId,
+		// 	"price":  arg.Price,
+		// })
+		// if err != nil {
+		// 	return fmt.Errorf("failed to update film change: %v", err)
+		// }
 
-		err = q.CreateOutbox(ctx,
-			CreateOutboxParams{
-				AggregatedType: "PRODUCT_FAB_ID",
-				AggregatedID:   fABId,
-				EventType:      global.FAB_CREATED,
-				Payload:        payloadBytes,
-			})
-		if err != nil {
-			return fmt.Errorf("failed to create out box: %w", err)
-		}
+		// err = q.CreateOutbox(ctx,
+		// 	CreateOutboxParams{
+		// 		AggregatedType: "PRODUCT_FAB_ID",
+		// 		AggregatedID:   fABId,
+		// 		EventType:      global.FAB_CREATED,
+		// 		Payload:        payloadBytes,
+		// 	})
+		// if err != nil {
+		// 	return fmt.Errorf("failed to create out box: %w", err)
+		// }
 
 		return nil
 	})
