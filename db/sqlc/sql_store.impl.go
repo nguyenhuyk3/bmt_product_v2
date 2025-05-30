@@ -5,6 +5,7 @@ import (
 	"bmt_product_service/global"
 	"bmt_product_service/utils/convertors"
 	"encoding/json"
+	"net/http"
 
 	"context"
 	"fmt"
@@ -237,6 +238,68 @@ func (s *SqlStore) UpdateFilmTran(ctx context.Context, arg request.UpdateFilmReq
 	}
 
 	return nil
+}
+
+// InsertFABTran implements IStore.
+func (s *SqlStore) InsertFABTran(ctx context.Context, arg request.AddFABReq) (int32, int, error) {
+	var statusCode int = http.StatusOK
+	var fABId int32 = -1
+
+	err := s.execTran(ctx, func(q *Queries) error {
+		var fabType NullFabTypes
+
+		err := fabType.Scan(arg.Type)
+		if err != nil {
+			statusCode = http.StatusBadRequest
+
+			return fmt.Errorf("invalid fab type: %v", err)
+		}
+
+		fABIdFromQuery, err := q.InsertFAB(ctx,
+			InsertFABParams{
+				Name: arg.Name,
+				Type: fabType.FabTypes,
+				ImageUrl: pgtype.Text{
+					String: "",
+					Valid:  true,
+				},
+				Price: int32(arg.Price),
+			})
+		if err != nil {
+			statusCode = http.StatusInternalServerError
+
+			return fmt.Errorf("insert FAB failed: %v", err)
+		}
+
+		fABId = fABIdFromQuery
+
+		payloadBytes, err := json.Marshal(gin.H{
+			"fab_id": fABId,
+			"price":  arg.Price,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to update film change: %v", err)
+		}
+
+		err = q.CreateOutbox(ctx,
+			CreateOutboxParams{
+				AggregatedType: "PRODUCT_FAB_ID",
+				AggregatedID:   fABId,
+				EventType:      global.FAB_CREATED,
+				Payload:        payloadBytes,
+			})
+		if err != nil {
+			return fmt.Errorf("failed to create out box: %w", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return fABId, statusCode, err
+	}
+
+	return fABId, statusCode, nil
 }
 
 func NewStore(connPool *pgxpool.Pool) IStore {

@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type fABService struct {
@@ -20,24 +18,9 @@ type fABService struct {
 
 // AddFAB implements services.IFoodAndBeverage.
 func (f *fABService) AddFAB(ctx context.Context, arg request.AddFABReq) (int, error) {
-	var fabType sqlc.NullFabTypes
-	err := fabType.Scan(arg.Type)
+	fABId, status, err := f.SqlStore.InsertFABTran(ctx, arg)
 	if err != nil {
-		return http.StatusBadRequest, fmt.Errorf("invalid fab type: %v", err)
-	}
-
-	fABId, err := f.SqlStore.InsertFAB(ctx,
-		sqlc.InsertFABParams{
-			Name: arg.Name,
-			Type: fabType.FabTypes,
-			ImageUrl: pgtype.Text{
-				String: "",
-				Valid:  true,
-			},
-			Price: int32(arg.Price),
-		})
-	if err != nil {
-		return http.StatusInternalServerError, fmt.Errorf("insert FAB failed: %v", err)
+		return status, err
 	}
 
 	go func() {

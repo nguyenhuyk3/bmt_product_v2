@@ -142,6 +142,19 @@ func (q *Queries) GetFilmByTitle(ctx context.Context, title string) (Film, error
 	return i, err
 }
 
+const getFilmDuration = `-- name: GetFilmDuration :one
+SELECT duration
+FROM films
+WHERE id = $1
+`
+
+func (q *Queries) GetFilmDuration(ctx context.Context, id int32) (pgtype.Interval, error) {
+	row := q.db.QueryRow(ctx, getFilmDuration, id)
+	var duration pgtype.Interval
+	err := row.Scan(&duration)
+	return duration, err
+}
+
 const getPosterUrlByFilmId = `-- name: GetPosterUrlByFilmId :one
 SELECT poster_url
 FROM other_film_informations

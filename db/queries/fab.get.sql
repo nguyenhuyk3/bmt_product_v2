@@ -16,3 +16,8 @@ SELECT EXISTS (
     SELECT 1 FROM foods_and_beverages WHERE id = $1
 ) AS EXISTS;
 
+-- name: GetPriceOfFABById :one
+SELECT price
+FROM foods_and_beverages
+WHERE id = $1;
+

@@ -45,6 +45,19 @@ func (q *Queries) GetFABImageURLByID(ctx context.Context, id int32) (pgtype.Text
 	return image_url, err
 }
 
+const getPriceOfFABById = `-- name: GetPriceOfFABById :one
+SELECT price
+FROM foods_and_beverages
+WHERE id = $1
+`
+
+func (q *Queries) GetPriceOfFABById(ctx context.Context, id int32) (int32, error) {
+	row := q.db.QueryRow(ctx, getPriceOfFABById, id)
+	var price int32
+	err := row.Scan(&price)
+	return price, err
+}
+
 const isFABExist = `-- name: IsFABExist :one
 SELECT EXISTS (
     SELECT 1 FROM foods_and_beverages WHERE id = $1
