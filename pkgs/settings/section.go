@@ -14,6 +14,7 @@ type serviceSetting struct {
 
 type serverSetting struct {
 	ServerPort    string `mapstructure:"SERVER_PORT"`
+	RPCServerPort string `mapstructure:"RPC_SERVER_PORT"`
 	XInternalCall string `mapstructure:"X_INTERNAL_CALL"`
 }
 

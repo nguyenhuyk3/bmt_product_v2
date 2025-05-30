@@ -2,7 +2,7 @@ module bmt_product_service
 
 go 1.23.1
 
-replace product => ../proto/product
+replace product => ../bmt_proto/product
 
 require (
 	github.com/aws/aws-sdk-go v1.55.7

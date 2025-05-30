@@ -57,7 +57,6 @@ GROUP BY
     ofi.poster_url,
     ofi.trailer_url;
 
-
 -- name: GetFilmDuration :one
 SELECT duration
 FROM films
