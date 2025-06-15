@@ -26,7 +26,7 @@ func InitProductController() (*controllers.ProductController, error) {
 	iRedis := redis.NewRedisClient()
 	iMessageBrokerWriter := writers.NewKafkaWriter()
 	iFilm := product.NewFilmService(iUpload, iStore, iRedis, iMessageBrokerWriter)
-	iFoodAndBeverage := product.NewFABService(iUpload, iStore)
+	iFoodAndBeverage := product.NewFABService(iUpload, iStore, iRedis)
 	productController := controllers.NewProductController(iFilm, iFoodAndBeverage)
 	return productController, nil
 }

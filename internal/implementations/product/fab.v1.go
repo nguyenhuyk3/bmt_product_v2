@@ -3,6 +3,7 @@ package product
 import (
 	"bmt_product_service/db/sqlc"
 	"bmt_product_service/dto/request"
+	"bmt_product_service/dto/response"
 	"bmt_product_service/global"
 	"bmt_product_service/internal/services"
 	"context"
@@ -14,6 +15,7 @@ import (
 type fABService struct {
 	UploadService services.IUpload
 	SqlStore      sqlc.IStore
+	RedisClient   services.IRedis
 }
 
 // AddFAB implements services.IFoodAndBeverage.
@@ -50,12 +52,38 @@ func (f *fABService) DeleteFAB(ctx context.Context, fABId int32) (int, error) {
 
 // GetAllFABs implements services.IFoodAndBeverage.
 func (f *fABService) GetAllFABs(ctx context.Context) (interface{}, int, error) {
-	fABs, err := f.SqlStore.GetAllFABs(ctx)
+	var fabs []response.FABItem
+
+	err := f.RedisClient.Get(global.ALL_FABS, &fabs)
 	if err != nil {
-		return nil, http.StatusInternalServerError, fmt.Errorf("an error occur when querying fabs: %w", err)
+		if err.Error() == fmt.Sprintf("key %s does not exist", global.ALL_FABS) {
+			queryedFABs, err := f.SqlStore.GetAllFABs(ctx)
+			if err != nil {
+				return nil, http.StatusInternalServerError, fmt.Errorf("an error occur when querying fabs: %w", err)
+			}
+
+			for _, fAB := range queryedFABs {
+				fabs = append(fabs, response.FABItem{
+					ID:       fAB.ID,
+					Name:     fAB.Name,
+					Type:     string(fAB.Type),
+					ImageUrl: fAB.ImageUrl.String,
+					Price:    fAB.Price,
+				})
+			}
+
+			err = f.RedisClient.Save(global.ALL_FABS, fabs, thirty_days)
+			if err != nil {
+				return nil, http.StatusInternalServerError, fmt.Errorf("warning: failed to save to Redis: %w", err)
+			}
+
+			return fabs, http.StatusOK, nil
+		}
+
+		return nil, http.StatusInternalServerError, fmt.Errorf("getting value occur an error: %w", err)
 	}
 
-	return fABs, http.StatusOK, nil
+	return fabs, http.StatusOK, nil
 }
 
 // UpdateFAB implements services.IFoodAndBeverage.
@@ -120,9 +148,11 @@ func (f *fABService) UpdateFAB(ctx context.Context, arg request.UpdateFABReq) (i
 func NewFABService(
 	uploadService services.IUpload,
 	sqlStore sqlc.IStore,
+	redisClient services.IRedis,
 ) services.IFoodAndBeverage {
 	return &fABService{
 		UploadService: uploadService,
 		SqlStore:      sqlStore,
+		RedisClient:   redisClient,
 	}
 }
