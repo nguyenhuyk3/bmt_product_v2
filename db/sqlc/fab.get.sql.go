@@ -11,6 +11,41 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const getAllFABs = `-- name: GetAllFABs :many
+SELECT id, name, type, image_url, price, is_deleted, created_at, updated_at FROM foods_and_beverages
+WHERE is_deleted = false
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetAllFABs(ctx context.Context) ([]FoodsAndBeverage, error) {
+	rows, err := q.db.Query(ctx, getAllFABs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []FoodsAndBeverage{}
+	for rows.Next() {
+		var i FoodsAndBeverage
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.ImageUrl,
+			&i.Price,
+			&i.IsDeleted,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getFABById = `-- name: GetFABById :one
 SELECT id, name, type, image_url, price, is_deleted, created_at, updated_at FROM foods_and_beverages
 WHERE id = $1
@@ -69,38 +104,4 @@ func (q *Queries) IsFABExist(ctx context.Context, id int32) (bool, error) {
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
-}
-
-const listFAB = `-- name: ListFAB :many
-SELECT id, name, type, image_url, price, is_deleted, created_at, updated_at FROM foods_and_beverages
-ORDER BY created_at DESC
-`
-
-func (q *Queries) ListFAB(ctx context.Context) ([]FoodsAndBeverage, error) {
-	rows, err := q.db.Query(ctx, listFAB)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []FoodsAndBeverage{}
-	for rows.Next() {
-		var i FoodsAndBeverage
-		if err := rows.Scan(
-			&i.ID,
-			&i.Name,
-			&i.Type,
-			&i.ImageUrl,
-			&i.Price,
-			&i.IsDeleted,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }

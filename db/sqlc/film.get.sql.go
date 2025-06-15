@@ -85,7 +85,7 @@ FROM films AS f
 LEFT JOIN other_film_informations ofi ON ofi.film_id = f.id
 LEFT JOIN film_genres fg ON fg.film_id = f.id
 
-WHERE f.id = $1
+WHERE f.id = $1 and ofi.status = 'success'
 
 GROUP BY 
     f.id,

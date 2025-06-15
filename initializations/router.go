@@ -8,6 +8,7 @@ import (
 
 func initRouter() *gin.Engine {
 	r := gin.Default()
+
 	// Routers
 	productRouter := routers.ProductServiceRouterGroup.Product
 

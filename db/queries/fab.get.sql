@@ -2,8 +2,9 @@
 SELECT * FROM foods_and_beverages
 WHERE id = $1;
 
--- name: ListFAB :many
+-- name: GetAllFABs :many
 SELECT * FROM foods_and_beverages
+WHERE is_deleted = false
 ORDER BY created_at DESC;
 
 -- name: GetFABImageURLByID :one

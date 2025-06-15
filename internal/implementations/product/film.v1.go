@@ -231,7 +231,6 @@ func (f *filmService) GetFilmById(ctx context.Context, filmId int32) (interface{
 	}
 
 	film, err := f.SqlStore.GetFilmById(ctx, filmId)
-	fmt.Println(film)
 
 	if err != nil {
 		return nil, http.StatusInternalServerError, fmt.Errorf("error retrieving film with id %d: %w", filmId, err)

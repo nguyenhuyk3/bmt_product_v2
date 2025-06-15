@@ -21,17 +21,17 @@ func (pr *ProductRouter) InitProductRouter(router *gin.RouterGroup) {
 
 	filmRouter := router.Group("/film")
 	{
-		adminFilmRouterPrivate := filmRouter.Group("/admin")
+		privateFilmRouter := filmRouter.Group("/admin")
 		{
-			adminFilmRouterPrivate.POST("/add",
+			privateFilmRouter.POST("/add",
 				getFromHeaderMiddleware.GetEmailFromHeader(),
 				productController.AddFilm)
-			adminFilmRouterPrivate.PUT("/update",
+			privateFilmRouter.PUT("/update",
 				getFromHeaderMiddleware.GetEmailFromHeader(),
 				productController.UpdateFilm)
-			adminFilmRouterPrivate.GET("/get_all_films",
+			privateFilmRouter.GET("/get_all_films",
 				productController.GetAllFilms)
-			adminFilmRouterPrivate.POST("/check_and_cache_film_existence/:film_id",
+			privateFilmRouter.POST("/check_and_cache_film_existence/:film_id",
 				productController.CheckAndCacheFilmExistence)
 		}
 
@@ -43,11 +43,16 @@ func (pr *ProductRouter) InitProductRouter(router *gin.RouterGroup) {
 
 	fabRouter := router.Group("/fab")
 	{
-		adminFABRouterPrivate := fabRouter.Group("/admin")
+		privateFABRouter := fabRouter.Group("/admin")
 		{
-			adminFABRouterPrivate.POST("/add", productController.AddFAB)
-			adminFABRouterPrivate.PUT("/update", productController.UpdateFAB)
-			adminFABRouterPrivate.POST("/delete", productController.DeleteFAB)
+			privateFABRouter.POST("/add", productController.AddFAB)
+			privateFABRouter.PUT("/update", productController.UpdateFAB)
+			privateFABRouter.POST("/delete", productController.DeleteFAB)
+		}
+
+		publicFABRouter := fabRouter.Group("/public")
+		{
+			publicFABRouter.GET("/get_all", productController.GetAllFABs)
 		}
 	}
 }

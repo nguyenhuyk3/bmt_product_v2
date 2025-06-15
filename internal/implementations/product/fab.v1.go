@@ -44,12 +44,18 @@ func (f *fABService) DeleteFAB(ctx context.Context, fABId int32) (int, error) {
 	if err != nil {
 		return http.StatusInternalServerError, fmt.Errorf("an error occur when toggling fab: %v", err)
 	}
+
 	return http.StatusOK, nil
 }
 
-// GetAllFAB implements services.IFoodAndBeverage.
-func (f *fABService) GetAllFAB(ctx context.Context) (interface{}, int, error) {
-	panic("unimplemented")
+// GetAllFABs implements services.IFoodAndBeverage.
+func (f *fABService) GetAllFABs(ctx context.Context) (interface{}, int, error) {
+	fABs, err := f.SqlStore.GetAllFABs(ctx)
+	if err != nil {
+		return nil, http.StatusInternalServerError, fmt.Errorf("an error occur when querying fabs: %w", err)
+	}
+
+	return fABs, http.StatusOK, nil
 }
 
 // UpdateFAB implements services.IFoodAndBeverage.

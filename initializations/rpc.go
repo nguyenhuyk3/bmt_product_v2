@@ -20,8 +20,8 @@ func initRPC() {
 	}
 
 	productRPCServer := rpc.NewProductRPCServer(*sqlc.New(global.Postgresql))
-
 	grpcServer := grpc.NewServer()
+
 	rpc_product.RegisterProductServer(grpcServer, productRPCServer)
 
 	if err := grpcServer.Serve(lis); err != nil {

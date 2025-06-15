@@ -251,7 +251,7 @@ func (pc *ProductController) CheckAndCacheFilmExistence(c *gin.Context) {
 
 	filmId, err := strconv.Atoi(c.Param("film_id"))
 	if err != nil {
-		responses.FailureResponse(c, http.StatusBadRequest, fmt.Sprintf("invalid film id %s", c.Param("id")))
+		responses.FailureResponse(c, http.StatusBadRequest, fmt.Sprintf("invalid film id %s", c.Param("film_id")))
 		return
 	}
 
@@ -267,10 +267,10 @@ func (pc *ProductController) CheckAndCacheFilmExistence(c *gin.Context) {
 	responses.SuccessResponse(c, status, "checking and caching film exsistence perform successfully", nil)
 }
 
-func (pc ProductController) GetFilmById(c *gin.Context) {
+func (pc *ProductController) GetFilmById(c *gin.Context) {
 	filmId, err := strconv.Atoi(c.Param("film_id"))
 	if err != nil {
-		responses.FailureResponse(c, http.StatusBadRequest, fmt.Sprintf("invalid film id %s", c.Param("id")))
+		responses.FailureResponse(c, http.StatusBadRequest, fmt.Sprintf("invalid film id %s", c.Param("film_id")))
 		return
 	}
 
@@ -284,4 +284,17 @@ func (pc ProductController) GetFilmById(c *gin.Context) {
 	}
 
 	responses.SuccessResponse(c, status, "get film by id perform successfully", film)
+}
+
+func (pc *ProductController) GetAllFABs(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 10*time.Second)
+	defer cancel()
+
+	fABs, status, err := pc.FABService.GetAllFABs(ctx)
+	if err != nil {
+		responses.FailureResponse(c, status, err.Error())
+		return
+	}
+
+	responses.SuccessResponse(c, status, "get all fABs perform successfully", fABs)
 }

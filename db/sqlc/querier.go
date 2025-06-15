@@ -12,6 +12,7 @@ import (
 
 type Querier interface {
 	CreateOutbox(ctx context.Context, arg CreateOutboxParams) error
+	GetAllFABs(ctx context.Context) ([]FoodsAndBeverage, error)
 	GetAllFilms(ctx context.Context) ([]GetAllFilmsRow, error)
 	GetFABById(ctx context.Context, id int32) (FoodsAndBeverage, error)
 	GetFABImageURLByID(ctx context.Context, id int32) (pgtype.Text, error)
@@ -24,7 +25,6 @@ type Querier interface {
 	InsertFAB(ctx context.Context, arg InsertFABParams) (int32, error)
 	IsFABExist(ctx context.Context, id int32) (bool, error)
 	IsFilmExist(ctx context.Context, id int32) (bool, error)
-	ListFAB(ctx context.Context) ([]FoodsAndBeverage, error)
 	ToggleFABDelete(ctx context.Context, id int32) error
 	UpdateFAB(ctx context.Context, arg UpdateFABParams) error
 	UpdateFABImageURL(ctx context.Context, arg UpdateFABImageURLParams) error

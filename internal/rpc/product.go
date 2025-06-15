@@ -15,7 +15,7 @@ type ProductRPCServer struct {
 	rpc_product.UnimplementedProductServer
 }
 
-func (p *ProductRPCServer) GetFilmCurrentlyShowing(ctx context.Context, arg *rpc_product.GetFilmCurrentlyShowingReq) (*rpc_product.GetFilmCurrentlyShowingRes, error) {
+func (p *ProductRPCServer) GetFilm(ctx context.Context, arg *rpc_product.GetFilmReq) (*rpc_product.GetFilmRes, error) {
 	film, err := p.SqlStore.GetFilmById(ctx, arg.FilmId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get film info for showing: %w", err)
@@ -30,11 +30,14 @@ func (p *ProductRPCServer) GetFilmCurrentlyShowing(ctx context.Context, arg *rpc
 	h := int(duration.Hours())
 	m := int(duration.Minutes()) % 60
 
-	return &rpc_product.GetFilmCurrentlyShowingRes{
-		FilmId:    film.ID,
-		PosterUrl: film.PosterUrl.String,
-		Genres:    strings.Join(genres, ", "),
-		Duration:  fmt.Sprintf("%02dh%02dm", h, m),
+	return &rpc_product.GetFilmRes{
+		FilmId:      film.ID,
+		Title:       film.Title,
+		Description: film.Description,
+		ReleaseDate: film.ReleaseDate.Time.Format("2006-01-02"),
+		PosterUrl:   film.PosterUrl.String,
+		Genres:      strings.Join(genres, ", "),
+		Duration:    fmt.Sprintf("%02dh%02dm", h, m),
 	}, nil
 }
 

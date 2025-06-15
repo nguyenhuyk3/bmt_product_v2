@@ -17,5 +17,5 @@ type IFoodAndBeverage interface {
 	AddFAB(ctx context.Context, arg request.AddFABReq) (int, error)
 	UpdateFAB(ctx context.Context, arg request.UpdateFABReq) (int, error)
 	DeleteFAB(ctx context.Context, fABId int32) (int, error)
-	GetAllFAB(ctx context.Context) (interface{}, int, error)
+	GetAllFABs(ctx context.Context) (interface{}, int, error)
 }
